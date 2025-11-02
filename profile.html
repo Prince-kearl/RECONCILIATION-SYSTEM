@@ -1,0 +1,512 @@
+<html lang="en">
+ <head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1" name="viewport"/>
+  <title>
+   Profile Page
+  </title>
+  <script src="https://cdn.tailwindcss.com">
+  </script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&amp;display=swap" rel="stylesheet"/>
+  <style>
+   body {
+      font-family: 'Inter', sans-serif;
+    }
+  </style>
+ </head>
+ <body class="bg-[#F9FAFB] text-[#374151] min-h-screen">
+  <div id="notification-container" class="fixed top-3 right-3 z-50 space-y-2"></div>
+  <!-- Header -->
+  <header class="bg-[#27343d] flex items-center justify-between px-6 py-3">
+   <div class="flex items-center space-x-2">
+    <img alt="GCB logo in yellow with eagle icon" class="w-8 h-8" height="32" src="images/gcblogo.png" width="32"/>
+    <h1 class="text-yellow-400 font-extrabold text-lg leading-none">
+     RECON <span class="text-white">X</span>
+    </h1>
+   </div>
+   <div class="flex items-center space-x-6">
+    <button aria-label="Send" class="text-w hite text-xl hover:text-yellow-400 transition">
+     <i class="fas fa-paper-plane"></i>
+    </button>
+    <button aria-label="User profile" class="bg-gray-400 bg-opacity-30 rounded-full w-8 h-8 flex items-center justify-center text-white text-sm">
+     <i class="fas fa-user"></i>
+    </button>
+   </div>
+  </header>
+  <!-- Navigation -->
+  <nav class="bg-white border-b border-gray-200 px-6" aria-label="Primary">
+   <ul class="flex space-x-6 text-sm font-semibold text-gray-700 pt-3 pb-2">
+    <li>
+     <a href="dashboard.html" class="hover:text-gray-900 inline-block focus:outline-none focus:ring-2 focus:ring-yellow-400 rounded">Dashboard</a>
+    </li>
+    <li>
+     <a href="upload_enhanced.html" class="hover:text-gray-900 inline-block focus:outline-none focus:ring-2 focus:ring-yellow-400 rounded">Upload</a>
+    </li>
+    <li>
+     <a href="balancing.html" class="hover:text-gray-900 inline-block focus:outline-none focus:ring-2 focus:ring-yellow-400 rounded">Balancing</a>
+    </li>
+    <li>
+     <a href="Report.html" class="hover:text-gray-900 inline-block focus:outline-none focus:ring-2 focus:ring-yellow-400 rounded">Reports</a>
+    </li>
+    <li>
+     <a href="audit.html" class="hover:text-gray-900 inline-block focus:outline-none focus:ring-2 focus:ring-yellow-400 rounded">Audit</a>
+    </li>
+    <li>
+     <a href="users.html" class="hover:text-gray-900 inline-block focus:outline-none focus:ring-2 focus:ring-yellow-400 rounded">Users</a>
+    </li>
+    <li>
+     <a href="profile.html" aria-current="page" class="text-yellow-500 border-b-2 border-yellow-400 pb-1 inline-block focus:outline-none focus:ring-2 focus:ring-yellow-400 rounded">Profile</a>
+    </li>
+    <li>
+     <a href="mail.html" class="hover:text-gray-900 inline-block focus:outline-none focus:ring-2 focus:ring-yellow-400 rounded">Mail</a>
+    </li>
+   </ul>
+  </nav>
+  <main class="max-w-[1024px] mx-auto space-y-6 p-4 sm:p-6 md:p-10">
+   <!-- Profile Header -->
+   <section class="bg-white rounded-lg p-5 flex items-center space-x-4 shadow-sm">
+    <img id="avatar" alt="Profile image" class="w-16 h-16 rounded-full object-cover" height="64" src="" width="64"/>
+    <div>
+     <h1 id="displayName" class="text-sm font-semibold text-[#111827]"></h1>
+     <p id="displayRole" class="text-xs text-[#6B7280] mt-0.5"></p>
+     <div class="flex items-center space-x-1 mt-1">
+      <span id="statusDot" class="w-2.5 h-2.5 rounded-full bg-gray-400 inline-block"></span>
+      <span id="statusText" class="text-[10px] font-medium text-gray-600 select-none"></span>
+     </div>
+    </div>
+   </section>
+   <section class="flex flex-col lg:flex-row lg:space-x-6 space-y-6 lg:space-y-0">
+    <!-- Left Column -->
+    <div class="flex-1 space-y-6">
+     <!-- Profile Information -->
+     <section class="bg-white rounded-lg p-5 shadow-sm">
+      <h2 class="text-xs font-semibold text-[#374151] mb-3">
+       Profile Information
+      </h2>
+      <form id="profileForm" class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4 text-xs text-[#6B7280]">
+       <div>
+        <label class="block mb-1 font-normal text-[#6B7280]" for="fullName">
+         Full Name
+        </label>
+        <input class="w-full rounded border border-[#D1D5DB] bg-[#F9FAFB] px-2 py-1 text-xs text-[#374151] focus:outline-none focus:ring-1 focus:ring-yellow-400" id="fullName" type="text"/>
+       </div>
+       <div>
+        <label class="block mb-1 font-normal text-[#6B7280]" for="email">
+         Email
+        </label>
+        <input class="w-full rounded border border-[#D1D5DB] bg-[#F9FAFB] px-2 py-1 text-xs text-[#374151] focus:outline-none focus:ring-1 focus:ring-yellow-400" id="email" type="email"/>
+       </div>
+       <div>
+        <label class="block mb-1 font-normal text-[#6B7280]" for="phone">
+         Phone Number
+        </label>
+        <input class="w-full rounded border border-[#D1D5DB] bg-[#F9FAFB] px-2 py-1 text-xs text-[#374151] focus:outline-none focus:ring-1 focus:ring-yellow-400" id="phone" type="text"/>
+       </div>
+       <div>
+        <label class="block mb-1 font-normal text-[#6B7280]" for="role">
+         Role
+        </label>
+        <input class="w-full rounded border border-[#D1D5DB] bg-[#F9FAFB] px-2 py-1 text-xs text-[#374151] focus:outline-none focus:ring-1 focus:ring-yellow-400" id="role" type="text"/>
+       </div>
+       <div>
+        <label class="block mb-1 font-normal text-[#6B7280]" for="branchName">
+         Branch Name
+        </label>
+        <input class="w-full rounded border border-[#D1D5DB] bg-[#F9FAFB] px-2 py-1 text-xs text-[#374151] focus:outline-none focus:ring-1 focus:ring-yellow-400" id="branchName" type="text"/>
+       </div>
+       <div>
+        <label class="block mb-1 font-normal text-[#6B7280]" for="branchCode">
+         Branch Code
+        </label>
+        <input class="w-full rounded border border-[#D1D5DB] bg-[#F9FAFB] px-2 py-1 text-xs text-[#374151] focus:outline-none focus:ring-1 focus:ring-yellow-400" id="branchCode" type="text"/>
+       </div>
+      </form>
+      <div class="mt-3">
+       <button id="btnSaveProfile" class="bg-yellow-400 text-white text-xs font-semibold rounded px-3 py-1.5 hover:bg-yellow-500 transition" type="button">Save Changes</button>
+      </div>
+     </section>
+     <!-- Security Settings -->
+     <section class="bg-white rounded-lg p-5 shadow-sm space-y-4 text-xs text-[#6B7280]">
+      <h2 class="text-[#374151] font-semibold text-sm">
+       Security Settings
+      </h2>
+      <form id="securityForm" class="space-y-3">
+       <div>
+        <p class="font-normal mb-1">
+         Change Password
+        </p>
+        <p class="mb-2">
+         Update your password to keep your account secure
+        </p>
+        <div class="grid grid-cols-3 gap-3">
+         <input id="currentPassword" class="w-full rounded border border-[#D1D5DB] bg-[#F9FAFB] px-2 py-1 text-xs text-[#374151] focus:outline-none focus:ring-1 focus:ring-yellow-400" placeholder="Current Password" type="password"/>
+         <input id="newPassword" class="w-full rounded border border-[#D1D5DB] bg-[#F9FAFB] px-2 py-1 text-xs text-[#374151] focus:outline-none focus:ring-1 focus:ring-yellow-400" placeholder="New Password" type="password"/>
+         <input id="confirmPassword" class="w-full rounded border border-[#D1D5DB] bg-[#F9FAFB] px-2 py-1 text-xs text-[#374151] focus:outline-none focus:ring-1 focus:ring-yellow-400" placeholder="Confirm Password" type="password"/>
+        </div>
+        <button class="mt-2 bg-yellow-400 text-white text-xs font-semibold rounded px-3 py-1.5 hover:bg-yellow-500 transition" type="submit">
+         Update Password
+        </button>
+       </div>
+       <div class="flex items-center justify-between">
+        <p class="font-normal">
+         Two-Factor Authentication
+        </p>
+        <label class="inline-flex items-center space-x-2 text-xs cursor-pointer select-none">
+         <input id="twofaToggle" class="form-checkbox h-4 w-4 text-yellow-400" type="checkbox"/>
+         <span>
+          Enable 2FA
+         </span>
+        </label>
+       </div>
+      </form>
+      <!-- Device Login History -->
+      <div class="text-xs text-[#6B7280]">
+       <p class="mb-2 font-normal">
+        Device Login History
+       </p>
+       <ul id="devicesList" class="space-y-2"></ul>
+      </div>
+     </section>
+     <!-- Recent Activity -->
+     <section class="bg-white rounded-lg p-5 shadow-sm text-xs text-[#6B7280]">
+      <h2 class="text-[#374151] font-semibold text-sm mb-3">
+       Recent Activity
+      </h2>
+      <table class="w-full table-fixed border-collapse">
+       <thead>
+        <tr class="text-left border-b border-[#E5E7EB]">
+         <th class="pb-2 pr-4 w-1/2 font-normal">
+          Action
+         </th>
+         <th class="pb-2 pr-4 w-1/4 font-normal">
+          Date
+         </th>
+         <th class="pb-2 font-normal">
+          Status
+         </th>
+        </tr>
+       </thead>
+       <tbody id="activityTbody"></tbody>
+      </table>
+     </section>
+    </div>
+    <!-- Right Column -->
+    <div class="w-full lg:w-[280px] flex flex-col space-y-6">
+     <!-- Preferences & Notifications -->
+     <section class="bg-white rounded-lg p-5 shadow-sm text-xs text-[#6B7280]">
+      <h2 class="text-[#374151] font-semibold text-sm mb-3">
+       Preferences &amp; Notifications
+      </h2>
+      <form class="space-y-4">
+       <div class="flex items-center justify-between">
+        <div>
+         <p class="font-semibold text-[11px] text-[#374151] mb-0.5">
+          Imbalance Alerts
+         </p>
+         <p class="text-[9px]">
+          Get notified when imbalances are detected
+         </p>
+        </div>
+        <label class="inline-flex relative items-center cursor-pointer">
+         <input checked="" class="sr-only peer" type="checkbox"/>
+         <div class="w-9 h-5 bg-gray-200 rounded-full peer peer-checked:bg-yellow-400 peer-focus:ring-2 peer-focus:ring-yellow-300 transition">
+         </div>
+         <div class="absolute left-0.5 top-0.5 bg-white border border-gray-300 rounded-full w-4 h-4 transition peer-checked:translate-x-4">
+         </div>
+        </label>
+       </div>
+       <div class="flex items-center justify-between">
+        <div>
+         <p class="font-semibold text-[11px] text-[#374151] mb-0.5">
+          Branch Mail CC
+         </p>
+         <p class="text-[9px]">
+          Include me in branch communications
+         </p>
+        </div>
+        <label class="inline-flex relative items-center cursor-pointer">
+         <input checked="" class="sr-only peer" type="checkbox"/>
+         <div class="w-9 h-5 bg-gray-200 rounded-full peer peer-checked:bg-yellow-400 peer-focus:ring-2 peer-focus:ring-yellow-300 transition">
+         </div>
+         <div class="absolute left-0.5 top-0.5 bg-white border border-gray-300 rounded-full w-4 h-4 transition peer-checked:translate-x-4">
+         </div>
+        </label>
+       </div>
+       <div class="flex items-center justify-between">
+        <div>
+         <p class="font-semibold text-[11px] text-[#374151] mb-0.5">
+          Weekly Reports
+         </p>
+         <p class="text-[9px]">
+          Receive weekly summary reports
+         </p>
+        </div>
+        <label class="inline-flex relative items-center cursor-pointer">
+         <input class="sr-only peer" disabled="" type="checkbox"/>
+         <div class="w-9 h-5 bg-gray-200 rounded-full peer-focus:ring-2 peer-focus:ring-yellow-300 transition">
+         </div>
+         <div class="absolute left-0.5 top-0.5 bg-white border border-gray-300 rounded-full w-4 h-4 transition">
+         </div>
+        </label>
+       </div>
+       <div>
+        <label class="block font-semibold text-[11px] text-[#374151] mb-1" for="notificationMethod">
+         Notification Method
+        </label>
+        <select class="w-full rounded border border-[#D1D5DB] bg-[#F9FAFB] px-2 py-1 text-xs text-[#374151] focus:outline-none focus:ring-1 focus:ring-yellow-400" id="notificationMethod">
+         <option>
+          Email Only
+         </option>
+         <option>
+          SMS Only
+         </option>
+         <option>
+          Email &amp; SMS
+         </option>
+        </select>
+       </div>
+      </form>
+     </section>
+     <!-- Quick Actions -->
+     <section class="bg-white rounded-lg p-5 shadow-sm text-xs text-[#6B7280]">
+      <h2 class="text-[#374151] font-semibold text-sm mb-3">
+       Quick Actions
+      </h2>
+      <ul class="space-y-2">
+       <li>
+        <button id="btnExportProfile" class="w-full flex items-center justify-between rounded border border-[#E5E7EB] px-3 py-2 text-[11px] text-[#374151] hover:bg-[#F3F4F6] transition" type="button">
+         <span class="flex items-center space-x-2">
+          <i class="fas fa-file-export text-yellow-400">
+          </i>
+          <span>
+           Export Profile Data
+          </span>
+         </span>
+         <i class="fas fa-chevron-right text-[#9CA3AF]">
+         </i>
+        </button>
+       </li>
+       <li>
+        <button class="w-full flex items-center justify-between rounded border border-[#E5E7EB] px-3 py-2 text-[11px] text-[#374151] hover:bg-[#F3F4F6] transition" type="button">
+         <span class="flex items-center space-x-2">
+          <i class="fas fa-list-alt text-yellow-400">
+          </i>
+          <span>
+           View Full Activity Log
+          </span>
+         </span>
+         <i class="fas fa-chevron-right text-[#9CA3AF]">
+         </i>
+        </button>
+       </li>
+       <li>
+        <button class="w-full flex items-center justify-between rounded border border-[#E5E7EB] px-3 py-2 text-[11px] text-[#374151] hover:bg-[#F3F4F6] transition" type="button">
+         <span class="flex items-center space-x-2">
+          <i class="fas fa-question-circle text-yellow-400">
+          </i>
+          <span>
+           Help &amp; Support
+          </span>
+         </span>
+         <i class="fas fa-chevron-right text-[#9CA3AF]">
+         </i>
+        </button>
+       </li>
+       <li>
+        <button id="btnLogout" class="w-full flex items-center justify-between rounded border border-red-300 bg-red-100 px-3 py-2 text-[11px] text-red-600 hover:bg-red-200 transition" type="button">
+         <span class="flex items-center space-x-2">
+          <i class="fas fa-sign-out-alt">
+          </i>
+          <span>
+           Logout
+          </span>
+         </span>
+        </button>
+       </li>
+      </ul>
+     </section>
+    </div>
+   </section>
+  </main>
+  <script>
+   const API_BASE_URL = 'https://api.reconx.com/v1';
+   const API_ENDPOINTS = window.API_ENDPOINTS || {
+     userProfile: '/user/profile',
+     userDevices: '/user/devices',
+     userActivity: '/user/activity',
+     userChangePassword: '/user/change-password',
+     userTwofaEnable: '/user/twofa/enable',
+     userTwofaDisable: '/user/twofa/disable',
+     userPreferences: '/user/preferences',
+     userExport: '/user/export'
+   };
+   function getAuthToken(){ return localStorage.getItem('authToken') || 'demo-token'; }
+   async function fetchData(pathOrUrl, { method='GET', headers={}, body, raw=false, retries=1 } = {}){
+     const url = pathOrUrl.startsWith('http') ? pathOrUrl : `${API_BASE_URL}${pathOrUrl}`;
+     const opts = { method, headers: { 'Authorization': `Bearer ${getAuthToken()}`, ...headers } };
+     if (body !== undefined) opts.body = body;
+     let lastErr;
+     for (let i=0;i<=retries;i++){
+       try { const res = await fetch(url, opts); if (!res.ok) throw new Error(`HTTP ${res.status}`); return raw ? res : res.json(); }
+       catch(e){ lastErr=e; if (i===retries) throw e; await new Promise(r=>setTimeout(r, 400*(i+1))); }
+     }
+     throw lastErr;
+   }
+   function showToast(message,type='info'){
+     const host=document.getElementById('notification-container');
+     const div=document.createElement('div');
+     const color= type==='error'?'bg-red-600': type==='success'?'bg-green-600':'bg-gray-800';
+     div.className=`${color} text-white text-xs rounded px-3 py-2 shadow`;
+     div.textContent=message; host.appendChild(div); setTimeout(()=>div.remove(),3500);
+   }
+
+   // Elements
+   const avatarEl = document.getElementById('avatar');
+   const nameEl = document.getElementById('displayName');
+   const roleEl = document.getElementById('displayRole');
+   const statusDotEl = document.getElementById('statusDot');
+   const statusTextEl = document.getElementById('statusText');
+   const profileForm = document.getElementById('profileForm');
+   const btnSaveProfile = document.getElementById('btnSaveProfile');
+   const securityForm = document.getElementById('securityForm');
+   const twofaToggle = document.getElementById('twofaToggle');
+   const devicesList = document.getElementById('devicesList');
+   const activityTbody = document.getElementById('activityTbody');
+   const notifMethod = document.getElementById('notificationMethod');
+   const btnExportProfile = document.getElementById('btnExportProfile');
+   const btnLogout = document.getElementById('btnLogout');
+
+   async function apiGet(path){ return fetchData(path); }
+   async function apiSend(path, method, body){ return fetchData(path, { method, headers:{ 'Content-Type':'application/json' }, body: body?JSON.stringify(body):undefined }); }
+
+   function pill(status){
+     const s = String(status||'').toLowerCase();
+     if (s==='active') return { dot:'bg-green-500', text:'text-green-600', label:'Active' };
+     if (s==='inactive') return { dot:'bg-gray-400', text:'text-gray-600', label:'Inactive' };
+     if (s==='suspended') return { dot:'bg-red-500', text:'text-red-600', label:'Suspended' };
+     return { dot:'bg-gray-400', text:'text-gray-600', label:String(status||'') };
+   }
+
+   async function loadProfile(){
+     try{
+       const p = await apiGet(API_ENDPOINTS.userProfile);
+       avatarEl.src = p.avatarUrl || 'images/avatar.png';
+       nameEl.textContent = p.fullName || p.name || '-';
+       roleEl.textContent = p.role || '-';
+       const status = pill(p.status);
+       statusDotEl.className = `w-2.5 h-2.5 rounded-full inline-block ${status.dot}`;
+       statusTextEl.className = `text-[10px] font-medium select-none ${status.text}`;
+       statusTextEl.textContent = status.label;
+       // Form values
+       document.getElementById('fullName').value = p.fullName || '';
+       document.getElementById('email').value = p.email || '';
+       document.getElementById('phone').value = p.phone || '';
+       document.getElementById('role').value = p.role || '';
+       document.getElementById('branchName').value = p.branchName || '';
+       document.getElementById('branchCode').value = p.branchCode || '';
+       // 2FA and preferences
+       twofaToggle.checked = !!p.twoFAEnabled;
+       notifMethod.value = (p.preferences && p.preferences.notificationMethod) || 'Email Only';
+     } catch(e){ showToast('Failed to load profile','error'); }
+   }
+
+   async function saveProfile(){
+     const body = {
+       fullName: document.getElementById('fullName').value,
+       email: document.getElementById('email').value,
+       phone: document.getElementById('phone').value,
+       role: document.getElementById('role').value,
+       branchName: document.getElementById('branchName').value,
+       branchCode: document.getElementById('branchCode').value
+     };
+     try { await apiSend(API_ENDPOINTS.userProfile, 'PUT', body); showToast('Profile updated','success'); await loadProfile(); } catch(e){ showToast('Failed to update profile','error'); }
+   }
+
+   async function changePassword(e){
+     e.preventDefault();
+     const body = { currentPassword: document.getElementById('currentPassword').value, newPassword: document.getElementById('newPassword').value, confirmPassword: document.getElementById('confirmPassword').value };
+     try { await apiSend(API_ENDPOINTS.userChangePassword,'POST',body); showToast('Password updated','success'); securityForm.reset(); } catch(e){ showToast('Password update failed','error'); }
+   }
+
+   async function toggle2FA(){
+     try { await apiSend(twofaToggle.checked ? API_ENDPOINTS.userTwofaEnable : API_ENDPOINTS.userTwofaDisable, 'POST'); showToast(`2FA ${twofaToggle.checked?'enabled':'disabled'}`,'success'); } catch(e){ showToast('2FA update failed','error'); twofaToggle.checked = !twofaToggle.checked; }
+   }
+
+   async function savePreferences(){
+     const body = { notificationMethod: notifMethod.value };
+     try { await apiSend(API_ENDPOINTS.userPreferences,'PUT',body); showToast('Preferences saved','success'); } catch(e){ showToast('Failed to save preferences','error'); }
+   }
+
+   function statusBadgeClass(s){
+     const v = String(s||'').toLowerCase();
+     if (v==='success') return 'bg-green-100 text-green-600';
+     if (v==='failed' || v==='error') return 'bg-red-100 text-red-600';
+     if (v==='pending') return 'bg-yellow-100 text-yellow-700';
+     return 'bg-gray-100 text-gray-600';
+   }
+
+   async function loadActivity(){
+     try{
+       const data = await apiGet(`${API_ENDPOINTS.userActivity}?limit=5`);
+       const items = Array.isArray(data)?data:(data.items||[]);
+       activityTbody.innerHTML='';
+       items.forEach(a=>{
+         const tr=document.createElement('tr');
+         tr.className='border-b border-[#E5E7EB]';
+         tr.innerHTML=`<td class="py-1 pr-4 text-[11px] text-[#374151] font-semibold">${a.message||a.action||'-'}</td>
+                       <td class="py-1 pr-4">${a.date ? new Date(a.date).toLocaleString(): '-'}</td>
+                       <td class="py-1"><span class="inline-block ${statusBadgeClass(a.status)} text-[9px] font-semibold rounded-full px-2 py-0.5 select-none">${a.status||'-'}</span></td>`;
+         activityTbody.appendChild(tr);
+       });
+       if(!items.length){ activityTbody.innerHTML = '<tr><td colspan="3" class="py-2 text-center text-[11px] text-[#9CA3AF]">No recent activity</td></tr>'; }
+     } catch(e){ showToast('Failed to load activity','error'); }
+   }
+
+   async function loadDevices(){
+     try{
+       const data = await apiGet(API_ENDPOINTS.userDevices);
+       const items = Array.isArray(data)?data:(data.items||[]);
+       devicesList.innerHTML='';
+       items.forEach(d=>{
+         const li=document.createElement('li');
+         li.className='flex items-center space-x-2';
+         const icon = (d.type||'').toLowerCase().includes('mobile')? 'fa-mobile-alt' : 'fa-desktop';
+         li.innerHTML=`<i class="fas ${icon} text-[#6B7280]"></i>
+                        <div class="flex-1">
+                          <p class="text-[#374151] font-semibold text-[11px] leading-none">${d.name||d.device||'-'}</p>
+                          <p class="text-[9px]">${d.ip||''} · ${d.location||''}</p>
+                        </div>
+                        <p class="text-[9px] ${d.current?'text-green-600 font-semibold':'text-[#6B7280]'} select-none">${d.current?'Current session': (d.lastSeen? new Date(d.lastSeen).toLocaleString():'')}</p>`;
+         devicesList.appendChild(li);
+       });
+       if(!items.length){ devicesList.innerHTML = '<li class="text-[11px] text-[#9CA3AF]">No devices</li>'; }
+     } catch(e){ showToast('Failed to load devices','error'); }
+   }
+
+   async function exportProfile(){
+     try{
+       const res = await fetchData(API_ENDPOINTS.userExport, { raw:true });
+       if(!res.ok) throw new Error('Export failed');
+       const blob = await res.blob();
+       const url = URL.createObjectURL(blob);
+       const a = document.createElement('a'); a.href=url; a.download='profile-export.zip'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+       showToast('Export started','success');
+     } catch(e){ showToast('Export failed','error'); }
+   }
+
+   function logout(){ localStorage.removeItem('authToken'); window.location.href = 'login.html'; }
+
+   // Events
+   btnSaveProfile.addEventListener('click', saveProfile);
+   securityForm.addEventListener('submit', changePassword);
+   twofaToggle.addEventListener('change', toggle2FA);
+   notifMethod.addEventListener('change', savePreferences);
+   btnExportProfile.addEventListener('click', exportProfile);
+   btnLogout.addEventListener('click', logout);
+
+   // Init
+   (async function init(){ await Promise.all([loadProfile(), loadActivity(), loadDevices()]); })();
+  </script>
+ </body>
+</html>

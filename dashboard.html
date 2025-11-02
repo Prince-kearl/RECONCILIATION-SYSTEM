@@ -1,0 +1,1730 @@
+<html lang="en">
+ <head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1" name="viewport"/>
+  <title>
+   ReconX Dashboard
+  </title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;display=swap" rel="stylesheet"/>
+  <style>
+   body {
+      font-family: 'Inter', sans-serif;
+    }
+    
+    /* Chart container styling */
+    .chart-container {
+      position: relative;
+      height: 180px;
+      width: 100%;
+    }
+    
+    .chart-container.large {
+      height: 220px;
+    }
+    
+    /* Loading states */
+    .chart-loading {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      color: #9CA3AF;
+      font-size: 0.875rem;
+    }
+  </style>
+ </head>
+ <body class="bg-[#f0f3f8] min-h-screen text-gray-900">
+  <div id="notification-container" class="fixed top-3 right-3 z-50 space-y-2"></div>
+  <a href="#main" class="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 bg-white text-gray-900 px-3 py-1 rounded">Skip to content</a>
+  <!-- Header -->
+  <header class="bg-[#27343d] flex items-center justify-between px-6 py-3">
+   <div class="flex items-center space-x-2">
+    <img alt="GCB logo in yellow with a flying eagle above the text" class="mb-4" height="120" src="images/reconx.png" width="120"/>
+   <!-- <h1 class="text-yellow-400 font-extrabold text-lg leading-none">
+     RECON
+     <span class="text-white">
+      X
+     </span>
+    </h1>-->
+   </div>
+   <div class="flex items-center space-x-6">
+    <!-- Role Switcher (for demo purposes) -->
+    <div class="flex items-center space-x-2 text-white text-sm">
+      <span>Role:</span>
+      <select id="roleSwitcher" class="bg-gray-600 text-white text-xs px-2 py-1 rounded border-0 focus:ring-2 focus:ring-yellow-400">
+        <option value="admin">Admin</option>
+        <option value="ops">Operations</option>
+        <option value="branch_manager">Branch Manager</option>
+      </select>
+      <select id="branchSwitcher" class="bg-gray-600 text-white text-xs px-2 py-1 rounded border-0 focus:ring-2 focus:ring-yellow-400" style="display: none;">
+        <option value="CIR001">Circle</option>
+        <option value="TEM001">Tema</option>
+        <option value="NIM001">Nima</option>
+        <option value="ACH001">Achimota</option>
+        <option value="LAP001">Lapaz</option>
+      </select>
+    </div>
+    
+    <!-- User Info Display -->
+    <div class="text-white text-sm">
+      <span class="user-info">Administrator</span>
+    </div>
+    
+    <button aria-label="Send" class="text-white text-xl hover:text-yellow-400 transition">
+     <i class="fas fa-paper-plane">
+     </i>
+    </button>
+    <button aria-label="User profile" class="bg-gray-400 bg-opacity-30 rounded-full w-8 h-8 flex items-center justify-center text-white text-sm">
+     <i class="fas fa-user">
+     </i>
+    </button>
+   </div>
+  </header>
+  <!-- Navigation -->
+  <nav class="bg-white border-b border-gray-200 px-6" aria-label="Primary">
+   <ul class="flex space-x-6 text-sm font-semibold text-gray-700 pt-3 pb-2">
+    <li>
+     <a href="dashboard.html" aria-current="page" class="text-yellow-500 border-b-2 border-yellow-400 pb-1 inline-block focus:outline-none focus:ring-2 focus:ring-yellow-400 rounded">Dashboard</a>
+    </li>
+    <li>
+    <a href="upload_enhanced.html" class="hover:text-gray-900 inline-block focus:outline-none focus:ring-2 focus:ring-yellow-400 rounded">Upload</a>
+    </li>
+    <li>
+     <a href="balancing.html" class="hover:text-gray-900 inline-block focus:outline-none focus:ring-2 focus:ring-yellow-400 rounded">Balancing</a>
+    </li>
+    <li>
+     <a href="Report.html" class="hover:text-gray-900 inline-block focus:outline-none focus:ring-2 focus:ring-yellow-400 rounded">Reports</a>
+    </li>
+    <li>
+     <a href="audit.html" class="hover:text-gray-900 inline-block focus:outline-none focus:ring-2 focus:ring-yellow-400 rounded">Audit</a>
+    </li>
+    <li>
+     <a href="profile.html" class="hover:text-gray-900 inline-block focus:outline-none focus:ring-2 focus:ring-yellow-400 rounded">Profile</a>
+    </li>
+    <li>
+     <a href="mail.html" class="hover:text-gray-900 inline-block focus:outline-none focus:ring-2 focus:ring-yellow-400 rounded">Mail</a>
+    </li>
+    <li><li>
+     <a href="mail.html" class="hover:text-gray-900 inline-block focus:outline-none focus:ring-2 focus:ring-yellow-400 rounded">Mail</a>
+    </li>
+     <a href="mail.html" class="hover:text-gray-900 inline-block focus:outline-none focus:ring-2 focus:ring-yellow-400 rounded">Mail</a>
+    </li>
+   </ul>
+  </nav>
+  <!-- Filters -->
+  <main id="main">
+  <section class="bg-white px-6 py-4 border-b border-gray-200 flex flex-wrap gap-3 items-center text-xs text-gray-700 filters-section">
+   <div class="flex items-center">
+    <label for="branch" class="sr-only">Search Branch</label>
+    <input id="branch" name="branch" list="branch-list" placeholder="All Branches" aria-label="Search Branch" class="border border-gray-300 rounded px-2 py-1 text-xs w-56 focus:outline-none focus:ring-1 focus:ring-yellow-400" data-admin-only="canViewAllBranches" />
+    <datalist id="branch-list">
+     <option value="All Branches"></option>
+     <option value="Headquarters (Thorpe Road / High Street, Accra)"></option>
+     <option value="Burma Camp"></option>
+     <option value="Accra New Town"></option>
+     <option value="Abelenkpe (Achimota School)"></option>
+     <option value="Circle"></option>
+     <option value="Dome"></option>
+     <option value="Kaneshie Industrial"></option>
+     <option value="Okaishie"></option>
+     <option value="Abossey Akai"></option>
+     <option value="Adabraka"></option>
+     <option value="Kantamanto"></option>
+     <option value="Dansoman"></option>
+     <option value="Labone"></option>
+     <option value="Madina"></option>
+     <option value="Spintex"></option>
+     <option value="Nungua"></option>
+     <option value="Tema Safe Bond"></option>
+     <option value="Ashaiman Mandela Park"></option>
+     <option value="Adenta Shopping Centre"></option>
+     <option value="Haatso"></option>
+     <option value="Kumasi Main"></option>
+     <option value="Suame Magazine"></option>
+     <option value="Asafo Market"></option>
+     <option value="KNUST"></option>
+     <option value="Kejetia"></option>
+     <option value="Mampong"></option>
+     <option value="Bekwai"></option>
+     <option value="Effiduasi"></option>
+     <option value="Obuasi"></option>
+     <option value="Ejisu"></option>
+     <option value="New Offinso"></option>
+     <option value="Ejura"></option>
+     <option value="New Edubiase"></option>
+     <option value="Ahinsan"></option>
+     <option value="Cape Coast Main"></option>
+     <option value="Cape Coast University"></option>
+     <option value="Cape Coast Coronation Junction"></option>
+     <option value="Saltpond"></option>
+     <option value="Mankessim"></option>
+     <option value="Abura Dunkwa"></option>
+     <option value="Assin Fosu"></option>
+     <option value="Twifu Praso"></option>
+     <option value="Agona Swedru"></option>
+     <option value="Winneba"></option>
+     <option value="Elmina"></option>
+     <option value="Breman Asikuma"></option>
+     <option value="Ho Main"></option>
+     <option value="Akatsi"></option>
+     <option value="Ho Market"></option>
+     <option value="Ho Polytechnic"></option>
+     <option value="Jasikan"></option>
+     <option value="Hohoe"></option>
+     <option value="Sogakope"></option>
+     <option value="Kpando"></option>
+     <option value="Krachi Nkwanta"></option>
+     <option value="Aflao"></option>
+     <option value="Abor"></option>
+     <option value="Dzodze"></option>
+     <option value="Keta"></option>
+     <option value="Peki"></option>
+     <option value="Dambai"></option>
+     <option value="Takoradi Main"></option>
+     <option value="Takoradi Harbour"></option>
+     <option value="Takoradi Market Circle"></option>
+     <option value="Sekondi"></option>
+     <option value="Bogoso"></option>
+     <option value="Tarkwa"></option>
+     <option value="Prestea"></option>
+     <option value="Axim"></option>
+     <option value="Sunyani Main"></option>
+     <option value="Bechem"></option>
+     <option value="Berekum"></option>
+     <option value="Dormaa Ahenkro"></option>
+     <option value="Duayaw-Nkwanta"></option>
+     <option value="Hwidiem"></option>
+     <option value="Goaso"></option>
+     <option value="Mim"></option>
+     <option value="JapeKrom"></option>
+     <option value="Wenchi"></option>
+     <option value="Kintampo"></option>
+     <option value="Nkoranza"></option>
+     <option value="Techiman"></option>
+     <option value="Sankore"></option>
+     <option value="Sampa"></option>
+     <option value="Techiman Market"></option>
+     <option value="Sunyani Market"></option>
+     <option value="Tamale Main"></option>
+     <option value="Yendi"></option>
+     <option value="Damongo"></option>
+     <option value="Salaga"></option>
+     <option value="Tamale Market"></option>
+     <option value="Bimbila"></option>
+     <option value="Yeji"></option>
+     <option value="Tamale Hospital Road"></option>
+     <option value="Saboba"></option>
+     <option value="Aboabo"></option>
+     <option value="Bolgatanga"></option>
+     <option value="Navrongo"></option>
+     <option value="Bawku"></option>
+     <option value="Walewale"></option>
+    </datalist>
+   </div>
+   <select aria-label="Select GL Types" class="border border-gray-300 rounded px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-yellow-400">
+    <option>
+     All GL Types
+    </option>
+        <option>
+     EAGLEPAY
+    </option>
+        <option>
+     TRANSFLOW
+    </option>
+        <option>
+    ETRANZACT
+    </option>
+   </select>
+   <input aria-label="Start date" class="border border-gray-300 rounded px-2 py-1 text-xs w-36 focus:outline-none focus:ring-1 focus:ring-yellow-400" type="date"/>
+   <span class="text-gray-500 text-xs">
+    to
+   </span>
+   <input aria-label="End date" class="border border-gray-300 rounded px-2 py-1 text-xs w-36 focus:outline-none focus:ring-1 focus:ring-yellow-400" type="date"/>
+   <select aria-label="Select Status" class="border border-gray-300 rounded px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-yellow-400">
+    <option>
+     All Status
+    </option>
+        <option>
+     Balanced
+    </option>
+        <option>
+     Imbalanced
+    </option>
+   </select>
+   <button aria-label="Apply Filters" class="bg-[#003822] text-white text-xs font-semibold px-3 py-1 rounded">
+    Apply Filters
+   </button>
+  </section>
+  <!-- Summary Cards -->
+  <section class="px-6 py-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 max-w-7xl mx-auto">
+   <!-- Card 1 -->
+   <div aria-label="Total Absolute Imbalance" class="bg-white rounded-lg p-4 shadow-sm flex justify-between items-center">
+    <div>
+     <p class="text-xs text-gray-600">
+      Total Abs. Imbalance
+     </p>
+     <p class="text-2xl font-bold text-blue-700 leading-none"><span class="kpi-value">—</span></p>
+     <p class="text-xs text-blue-500 mt-1"><span class="kpi-sub">—</span></p>
+    </div>
+    <div aria-hidden="true" class="bg-blue-100 rounded-full w-10 h-10 flex items-center justify-center">
+     <i class="fas fa-balance-scale text-blue-500 text-lg">
+     </i>
+    </div>
+   </div>
+   <!-- Card 2 -->
+   <div aria-label="Balanced Count" class="bg-white rounded-lg p-4 shadow-sm flex justify-between items-center">
+    <div>
+     <p class="text-xs text-green-700 font-semibold">
+      Balanced Count
+     </p>
+     <p class="text-2xl font-extrabold text-green-800 leading-none"><span class="kpi-value">—</span></p>
+     <p class="text-xs text-green-600 font-semibold mt-1"><span class="kpi-sub">—</span></p>
+    </div>
+    <div aria-hidden="true" class="bg-green-100 rounded-full w-10 h-10 flex items-center justify-center">
+     <i class="fas fa-check-circle text-green-600 text-lg">
+     </i>
+    </div>
+   </div>
+   <!-- Card 3 -->
+   <div aria-label="Imbalances Count" class="bg-white rounded-lg p-4 shadow-sm flex justify-between items-center">
+    <div>
+     <p class="text-xs text-red-600 font-semibold">
+      Imbalances Count
+     </p>
+     <p class="text-2xl font-extrabold text-red-700 leading-none"><span class="kpi-value">—</span></p>
+     <p class="text-xs text-red-500 font-semibold mt-1"><span class="kpi-sub">—</span></p>
+    </div>
+    <div aria-hidden="true" class="bg-red-100 rounded-full w-10 h-10 flex items-center justify-center">
+     <i class="fas fa-exclamation-triangle text-red-600 text-lg">
+     </i>
+    </div>
+   </div>
+   <!-- Card 4 -->
+   <div aria-label="Proxy Credits" class="bg-white rounded-lg p-4 shadow-sm flex justify-between items-center">
+    <div>
+     <p class="text-xs text-yellow-700 font-semibold">
+      Proxy Credits
+     </p>
+     <p class="text-2xl font-extrabold text-yellow-600 leading-none"><span class="kpi-value">—</span></p>
+     <p class="text-xs text-yellow-500 font-semibold mt-1"><span class="kpi-sub">—</span></p>
+    </div>
+    <div aria-hidden="true" class="bg-yellow-100 rounded-full w-10 h-10 flex items-center justify-center">
+     <i class="fas fa-user-friends text-yellow-600 text-lg">
+     </i>
+    </div>
+   </div>
+  </section>
+  <!-- Charts Section -->
+  <section class="px-6 max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
+   <!-- Imbalances Trend -->
+   <div aria-label="Imbalances Trend chart" class="bg-white rounded-lg p-4 shadow-sm">
+    <h2 class="font-semibold text-sm mb-3">
+     Imbalances Trend
+    </h2>
+    <div class="flex justify-end space-x-2 mb-2">
+     <button aria-label="Day view" class="text-xs text-gray-600 border border-gray-300 rounded px-2 py-0.5">
+      Day
+     </button>
+     <button aria-label="Week view" class="text-xs text-white bg-gray-800 rounded px-2 py-0.5">
+      Week
+     </button>
+     <button aria-label="Month view" class="text-xs text-gray-600 border border-gray-300 rounded px-2 py-0.5">
+      Month
+     </button>
+    </div>
+    <div class="chart-container">
+      <canvas id="trendChart"></canvas>
+    </div>
+   </div>
+   <!-- Imbalances by GL Type -->
+   <div aria-label="Imbalances by GL Type chart" class="bg-white rounded-lg p-4 shadow-sm">
+    <h2 class="font-semibold text-sm mb-3">
+     Imbalances by GL Type
+    </h2>
+    <div class="w-full flex items-center">
+      <div class="chart-container">
+        <canvas id="glTypeChart"></canvas>
+      </div>
+      <div class="ml-6 hidden md:block">
+        <ul class="space-y-2 text-xs">
+          <li class="flex items-center justify-between gap-4" data-key="EAGLEPAY">
+            <span class="flex items-center gap-2">
+              <span class="w-3 h-3 rounded-full inline-block" style="background-color:#3B82F6"></span>
+              <span class="text-gray-900 font-semibold">EAGLEPAY</span>
+            </span>
+            <span class="text-[#3B82F6] font-semibold legend-pct">—</span>
+          </li>
+          <li class="flex items-center justify-between gap-4" data-key="TRANSFLOW">
+            <span class="flex items-center gap-2">
+              <span class="w-3 h-3 rounded-full inline-block" style="background-color:#10B981"></span>
+              <span class="text-gray-900 font-semibold">TRANSFLOW</span>
+            </span>
+            <span class="text-[#10B981] font-semibold legend-pct">—</span>
+          </li>
+          <li class="flex items-center justify-between gap-4" data-key="ETRANZACT">
+            <span class="flex items-center gap-2">
+              <span class="w-3 h-3 rounded-full inline-block" style="background-color:#F59E0B"></span>
+              <span class="text-gray-900 font-semibold">ETRANZACT</span>
+            </span>
+            <span class="text-[#F59E0B] font-semibold legend-pct">—</span>
+          </li>
+        </ul>
+      </div>
+    </div>
+   </div>
+  </section>
+  <!-- Lower Cards Section -->
+  <section class="px-6 max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-6 mb-20">
+   <!-- Imbalance Categories -->
+   <div aria-label="Imbalance Categories bar chart" class="bg-white rounded-lg p-6 shadow-sm">
+    <h3 class="font-bold text-xs mb-4 uppercase">
+     Imbalance Categories
+    </h3>
+    <div class="chart-container large">
+      <canvas id="categoriesChart"></canvas>
+    </div>
+    <div class="flex justify-between text-[9px] text-gray-500 mt-2">
+     <span class="flex items-center space-x-1">
+      <span class="w-2 h-2 rounded-full bg-cyan-400 inline-block">
+      </span>
+      <span>
+       Overstatement
+      </span>
+     </span>
+     <span class="flex items-center space-x-1">
+      <span class="w-2 h-2 rounded-full bg-sky-500 inline-block">
+      </span>
+      <span>
+       understatement
+      </span>
+     </span>
+     <span class="flex items-center space-x-1">
+      <span class="w-2 h-2 rounded-full bg-blue-700 inline-block">
+      </span>
+      <span>
+       Duplication
+      </span>
+     </span>
+     <span class="flex items-center space-x-1">
+      <span class="w-2 h-2 rounded-full bg-blue-900 inline-block">
+      </span>
+      <span>
+       Failed
+      </span>
+     </span>
+    </div>
+   </div>
+   <!-- Top 5 Branches with Imbalance -->
+   <div aria-label="Top 5 Branches with Imbalance table" class="bg-white rounded-lg p-6 shadow-sm">
+    <h3 class="font-bold text-xs mb-4 uppercase">
+     Top 5 Branches with Imbalance
+    </h3>
+    <table class="w-full text-xs border-collapse" id="topBranchesTable">
+     <caption class="sr-only">Top five branches with most imbalances</caption>
+     <thead>
+      <tr class="bg-blue-600 text-white text-[10px]">
+       <th class="py-2 px-3 text-left font-semibold">
+        Branch
+       </th>
+       <th class="py-2 px-3 text-left font-semibold">
+        Imbalance Count
+       </th>
+      </tr>
+     </thead>
+     <tbody>
+     </tbody>
+    </table>
+   </div>
+  </section>
+  <!-- Quick Actions -->
+  <section class="max-w-7xl mx-auto px-6 mb-10">
+   <div aria-label="Quick Actions" class="bg-white rounded-lg p-4 flex flex-col sm:flex-row gap-4 sm:gap-6 text-xs text-gray-700">
+    <button aria-label="Upload Imbalance Excel" class="flex items-center gap-2 border border-gray-300 rounded px-3 py-2 w-full sm:w-auto hover:bg-gray-50">
+     <i class="fas fa-file-upload text-blue-500 text-sm">
+     </i>
+     <div class="text-left">
+      <p class="font-semibold text-[11px] text-gray-900 leading-none">
+       Upload Imbalance Excel
+      </p>
+      <p class="text-[9px] text-gray-500 leading-tight">
+       Import transaction data
+      </p>
+     </div>
+    </button>
+    <button aria-label="Generate Reports" class="flex items-center gap-2 border border-gray-300 rounded px-3 py-2 w-full sm:w-auto hover:bg-gray-50">
+     <i class="fas fa-file-alt text-green-500 text-sm">
+     </i>
+     <div class="text-left">
+      <p class="font-semibold text-[11px] text-gray-900 leading-none">
+       Generate Reports
+      </p>
+      <p class="text-[9px] text-gray-500 leading-tight">
+       Daily &amp; weekly summaries
+      </p>
+     </div>
+    </button>
+    <button aria-label="View Audit Logs" class="flex items-center gap-2 border border-gray-300 rounded px-3 py-2 w-full sm:w-auto hover:bg-gray-50">
+     <i class="fas fa-history text-purple-400 text-sm">
+     </i>
+     <div class="text-left">
+      <p class="font-semibold text-[11px] text-gray-900 leading-none">
+       View Audit Logs
+      </p>
+      <p class="text-[9px] text-gray-500 leading-tight">
+       Track all system activities
+      </p>
+     </div>
+    </button>
+   </div>
+  </section>
+  <!-- Recent Activity -->
+  <section class="max-w-7xl mx-auto px-6 mb-20">
+   <div aria-label="Recent Activity" aria-live="polite" class="bg-white rounded-lg p-4 shadow-sm text-xs text-gray-700">
+    <div class="flex justify-between items-center mb-3">
+     <h4 class="font-semibold text-[11px]">
+      Recent Activity
+     </h4>
+     <a class="text-green-900 text-[10px] font-semibold hover:underline" href="#">
+      View All
+     </a>
+    </div>
+    <ul class="space-y-3">
+     <li class="flex justify-between items-start">
+      <div class="flex items-start space-x-2 max-w-[80%]">
+       <span aria-hidden="true" class="flex-shrink-0 bg-red-100 text-red-600 rounded-full w-5 h-5 flex items-center justify-center text-[10px]">
+        <i class="fas fa-exclamation-triangle">
+        </i>
+       </span>
+       <div>
+        <p class="font-semibold text-[10px] text-red-700 leading-tight">
+         New imbalance detected
+        </p>
+        <p class="text-[8px] text-gray-500 leading-tight">
+         TRN: TXN202401150847 - Amount: GHS 2,500.00
+        </p>
+       </div>
+      </div>
+      <span class="text-[8px] text-gray-400">
+       2 min ago
+      </span>
+     </li>
+     <li class="flex justify-between items-start">
+      <div class="flex items-start space-x-2 max-w-[80%]">
+       <span aria-hidden="true" class="flex-shrink-0 bg-green-100 text-green-600 rounded-full w-5 h-5 flex items-center justify-center text-[10px]">
+        <i class="fas fa-check-circle">
+        </i>
+       </span>
+       <div>
+        <p class="font-semibold text-[10px] text-green-700 leading-tight">
+         Imbalance resolved
+        </p>
+        <p class="text-[8px] text-gray-500 leading-tight">
+         TRN: TXN202401150832 - Matched by John Doe
+        </p>
+       </div>
+      </div>
+      <span class="text-[8px] text-gray-400">
+       5 min ago
+      </span>
+     </li>
+     <li class="flex justify-between items-start">
+      <div class="flex items-start space-x-2 max-w-[80%]">
+       <span aria-hidden="true" class="flex-shrink-0 bg-blue-100 text-blue-600 rounded-full w-5 h-5 flex items-center justify-center text-[10px]">
+        <i class="fas fa-file-upload">
+        </i>
+       </span>
+       <div>
+        <p class="font-semibold text-[10px] text-blue-700 leading-tight">
+         Excel file uploaded
+        </p>
+        <p class="text-[8px] text-gray-500 leading-tight">
+         Daily Transactions_20240115.xlsx - 1,247 records
+        </p>
+       </div>
+      </div>
+      <span class="text-[8px] text-gray-400">
+       15 min ago
+      </span>
+     </li>
+     <li class="flex justify-between items-start">
+      <div class="flex items-start space-x-2 max-w-[80%]">
+       <span aria-hidden="true" class="flex-shrink-0 bg-yellow-100 text-yellow-600 rounded-full w-5 h-5 flex items-center justify-center text-[10px]">
+        <i class="fas fa-user-friends">
+        </i>
+       </span>
+       <div>
+        <p class="font-semibold text-[10px] text-yellow-700 leading-tight">
+         Proxy credit flagged
+        </p>
+        <p class="text-[8px] text-gray-500 leading-tight">
+         TRN: TXN202401150308 - Posted by USER123, Created for USER456
+        </p>
+       </div>
+      </div>
+      <span class="text-[8px] text-gray-400">
+       32 min ago
+      </span>
+     </li>
+    </ul>
+   </div>
+  </section>
+  </main>
+  
+  <!-- Dashboard JavaScript -->
+  <script>
+    // Global config
+    const API_BASE_URL = 'https://api.reconx.com/v1';
+    const API_ENDPOINTS = window.API_ENDPOINTS || {
+      userProfile: '/user/profile',
+      rolesConfig: '/roles/config',
+      dashboard: {
+        stats: '/dashboard/stats',
+        trend: '/dashboard/trend',
+        glBreakdown: '/dashboard/gl-breakdown',
+        categories: '/dashboard/categories',
+        topBranches: '/dashboard/top-branches',
+        activity: '/dashboard/activity'
+      },
+      branches: '/branches', // New endpoint for branch list
+      dashboardEvents: '/dashboard/events', // New endpoint for SSE
+      dashboardWs: '/dashboard/ws' // New endpoint for WS
+    };
+    function getAuthToken(){ return localStorage.getItem('authToken') || 'demo-token'; }
+    async function fetchData(pathOrUrl, { method='GET', headers={}, body, raw=false, retries=2 } = {}){
+      const url = pathOrUrl.startsWith('http') ? pathOrUrl : `${API_BASE_URL}${pathOrUrl}`;
+      const opts = { method, headers: { 'Authorization': `Bearer ${getAuthToken()}`, ...headers } };
+      if (body !== undefined) opts.body = body;
+      let lastErr; for (let i=0;i<=retries;i++){ try{ const res = await fetch(url, opts); if(!res.ok) throw new Error(`HTTP ${res.status}`); return raw ? res : res.json(); } catch(e){ lastErr=e; if(i===retries) throw e; await new Promise(r=>setTimeout(r, 400*(i+1))); } }
+      throw lastErr;
+    }
+
+    // Dashboard data state
+    let dashboardData = {
+      kpis: {},
+      trendData: {},
+      glTypeData: {},
+      categoriesData: {},
+      topBranches: []
+    };
+
+    // User role and permissions
+    let currentUser = {
+      role: 'admin', // 'admin', 'ops', 'branch_manager'
+      branch: null, // Branch code for branch managers
+      permissions: [],
+      branchName: null // Added for branch manager display
+    };
+
+    // Role-based configurations (server-provided preferred; fallback below)
+    let ROLE_CONFIG = {
+      admin: { canViewAllBranches:true, canManageUsers:true, canViewAuditLogs:true, canExportData:true, defaultView:'global' },
+      ops: { canViewAllBranches:true, canManageUsers:false, canViewAuditLogs:true, canExportData:true, defaultView:'global' },
+      branch_manager: { canViewAllBranches:false, canManageUsers:false, canViewAuditLogs:false, canExportData:false, defaultView:'branch' }
+    };
+
+    // Initialize charts when DOM is loaded
+    document.addEventListener('DOMContentLoaded', function() {
+      // Initialize user session and role
+      initializeUserSession();
+      // Try load role config from server
+      loadRoleConfig();
+      
+      // Apply role-based UI customization
+      customizeUIForRole();
+      
+      loadDashboardData();
+      setupFilterHandlers();
+      setupTimeRangeHandlers();
+      setupRoleSwitchers(); // Setup role switcher event handlers
+      setupRoleBasedExport(); // Setup role-based export handlers
+      addExportButtons(); // Add export buttons to the filters section
+      showRoleWelcome(); // Show welcome message based on role
+    });
+
+    async function initializeUserSession() {
+      try{
+        const u = await fetchData(API_ENDPOINTS.userProfile).catch(()=>({ role:'admin', branch:null }));
+        currentUser.role = u.role || 'admin';
+        currentUser.branch = u.branchCode || u.branch || null;
+        currentUser.branchName = u.branchName || null;
+      } catch { currentUser.role='admin'; currentUser.branch=null; }
+      currentUser.permissions = ROLE_CONFIG[currentUser.role] || ROLE_CONFIG.admin;
+      updateRoleSwitcherUI();
+    }
+
+    // Update role switcher UI to reflect current role
+    function updateRoleSwitcherUI() {
+      const roleSwitcher = document.getElementById('roleSwitcher');
+      const branchSwitcher = document.getElementById('branchSwitcher');
+      
+      if (roleSwitcher) {
+        roleSwitcher.value = currentUser.role;
+      }
+      
+      if (branchSwitcher) {
+        if (currentUser.role === 'branch_manager') {
+          branchSwitcher.style.display = 'inline-block';
+          branchSwitcher.value = currentUser.branch || 'CIR001';
+        } else {
+          branchSwitcher.style.display = 'none';
+        }
+      }
+    }
+
+    // Setup role switcher event handlers
+    function setupRoleSwitchers() {
+      const roleSwitcher = document.getElementById('roleSwitcher');
+      const branchSwitcher = document.getElementById('branchSwitcher');
+      
+      if (roleSwitcher) {
+        roleSwitcher.addEventListener('change', function() {
+          const newRole = this.value;
+          currentUser.role = newRole;
+          currentUser.permissions = ROLE_CONFIG[newRole];
+          
+          // Reset branch if not branch manager
+          if (newRole !== 'branch_manager') {
+            currentUser.branch = null;
+          } else if (!currentUser.branch) {
+            currentUser.branch = 'CIR001'; // Default branch
+          }
+          
+          // Log role change
+          logUserActivity('role_changed', { from: currentUser.role, to: newRole });
+          
+          // Update UI and refresh data
+          customizeUIForRole();
+          refreshDashboardData();
+          
+          console.log(`Role changed to: ${newRole}${currentUser.branch ? ` (${currentUser.branch})` : ''}`);
+        });
+      }
+      
+      if (branchSwitcher) {
+        branchSwitcher.addEventListener('change', function() {
+          if (currentUser.role === 'branch_manager') {
+            const oldBranch = currentUser.branch;
+            currentUser.branch = this.value;
+            
+            // Log branch change
+            logUserActivity('branch_changed', { from: oldBranch, to: currentUser.branch });
+            
+            // Update UI and refresh data
+            customizeUIForRole();
+            refreshDashboardData();
+            
+            console.log(`Branch changed to: ${currentUser.branch}`);
+          }
+        });
+      }
+    }
+
+    // Customize UI based on user role
+    function customizeUIForRole() {
+      const config = currentUser.permissions;
+      
+      // Update page title and header
+      updatePageHeader();
+      
+      // Customize navigation based on permissions
+      customizeNavigation();
+      
+      // Customize filters based on role
+      customizeFilters();
+      
+      // Show/hide admin features
+      toggleAdminFeatures();
+    }
+
+    // Update page header based on role
+    function updatePageHeader() {
+      const headerTitle = document.querySelector('h1');
+      const userInfo = document.querySelector('.user-info');
+      
+      if (headerTitle) {
+        if (currentUser.role === 'branch_manager') {
+          const branchName = currentUser.branchName || currentUser.branch || 'Branch';
+          headerTitle.textContent = `${branchName} Branch Dashboard`;
+        } else {
+          headerTitle.textContent = 'Global Dashboard';
+        }
+      }
+      
+      if (userInfo) {
+        const roleDisplay = currentUser.role === 'branch_manager' ? 'Branch Manager' : 
+                           currentUser.role === 'ops' ? 'Operations' : 'Administrator';
+        userInfo.textContent = `${roleDisplay}${currentUser.branch ? ` - ${currentUser.branchName || currentUser.branch}` : ''}`;
+      }
+    }
+
+    // Customize navigation based on permissions
+    function customizeNavigation() {
+      const navItems = document.querySelectorAll('nav a');
+      
+      navItems.forEach(item => {
+        const href = item.getAttribute('href');
+        
+        // Hide admin-only features for branch managers
+        if (href === 'audit.html' && !currentUser.permissions.canViewAuditLogs) {
+          item.style.display = 'none';
+        }
+        
+        // Hide profile management for branch managers
+        if (href === 'profile.html' && currentUser.role === 'branch_manager') {
+          item.style.display = 'none';
+        }
+      });
+    }
+
+    // Customize filters based on role
+    function customizeFilters() {
+      const branchFilter = document.querySelector('#branch');
+      const branchLabel = document.querySelector('label[for="branch"]');
+      
+      if (currentUser.role === 'branch_manager') {
+        // Branch managers can only see their branch
+        if (branchFilter) {
+          branchFilter.value = currentUser.branch;
+          branchFilter.disabled = true;
+          branchFilter.style.backgroundColor = '#f3f4f6';
+        }
+        
+        if (branchLabel) {
+          branchLabel.textContent = 'Branch (Fixed)';
+        }
+        
+        // Add branch info display
+        addBranchInfoDisplay();
+      } else {
+        // Admin/Ops can see all branches
+        if (branchFilter) {
+          branchFilter.disabled = false;
+          branchFilter.style.backgroundColor = 'white';
+        }
+        populateBranchList();
+      }
+    }
+
+    // Add branch information display for branch managers
+    function addBranchInfoDisplay() {
+      const filterSection = document.querySelector('.filters-section');
+      if (!filterSection || !currentUser.branch) return;
+      
+      const branchName = currentUser.branchName || currentUser.branch || '';
+      if (!branchName) return;
+      
+      const infoDiv = document.createElement('div');
+      infoDiv.className = 'bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4';
+      infoDiv.innerHTML = `
+        <div class="flex items-center text-blue-800">
+          <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"></path>
+          </svg>
+          <div>
+            <p class="font-medium">${branchName} Branch</p>
+            <p class="text-sm">Restricted to branch-level data</p>
+          </div>
+        </div>
+      `;
+      
+      filterSection.insertBefore(infoDiv, filterSection.firstChild);
+    }
+
+    // Toggle admin features based on permissions
+    function toggleAdminFeatures() {
+      const adminFeatures = document.querySelectorAll('[data-admin-only]');
+      
+      adminFeatures.forEach(feature => {
+        const requiredPermission = feature.getAttribute('data-admin-only');
+        const hasPermission = currentUser.permissions[requiredPermission];
+        
+        if (!hasPermission) {
+          feature.style.display = 'none';
+        }
+      });
+    }
+
+    // Load initial dashboard data
+    async function loadDashboardData() {
+      try {
+        showLoadingState();
+        await Promise.all([
+          fetchDashboardStats(),
+          fetchTrendData(),
+          fetchGLBreakdown(),
+          fetchCategories(),
+          fetchTopBranches()
+        ]);
+        
+        // Initialize charts and update UI
+        initializeCharts();
+        updateKPIs();
+        updateGlLegend();
+        updateTopBranchesTable();
+        hideLoadingState();
+      } catch (error) {
+        console.error('Error loading dashboard data:', error);
+        showNotification('Failed to load dashboard data', 'error');
+        hideLoadingState();
+      }
+    }
+
+    async function fetchDashboardStats(filters = {}) {
+      try {
+        const roleFilters = applyRoleBasedFilters(filters);
+        const data = await fetchData(`${API_ENDPOINTS.dashboard.stats}?${new URLSearchParams(roleFilters).toString()}`);
+        dashboardData.kpis = data || {};
+        return dashboardData.kpis;
+      } catch (error) {
+        console.error('Error fetching dashboard stats:', error);
+        throw error;
+      }
+    }
+
+    async function fetchTrendData(filters = {}) {
+      try {
+        const roleFilters = applyRoleBasedFilters(filters);
+        const data = await fetchData(`${API_ENDPOINTS.dashboard.trend}?${new URLSearchParams(roleFilters).toString()}`);
+        const safe = data || { day:{labels:[],data:[]}, week:{labels:[],data:[]}, month:{labels:[],data:[]} };
+        dashboardData.trendData = {
+          day: {
+            labels: safe.day.labels || [],
+            datasets: [{
+              label: 'Imbalances',
+              data: safe.day.data || [],
+              borderColor: '#DC2626',
+              backgroundColor: 'rgba(220, 38, 38, 0.1)',
+              tension: 0.4,
+              fill: true
+            }]
+          },
+          week: {
+            labels: safe.week.labels || [],
+            datasets: [{
+              label: 'Imbalances',
+              data: safe.week.data || [],
+              borderColor: '#DC2626',
+              backgroundColor: 'rgba(220, 38, 38, 0.1)',
+              tension: 0.4,
+              fill: true
+            }]
+          },
+          month: {
+            labels: safe.month.labels || [],
+            datasets: [{
+              label: 'Imbalances',
+              data: safe.month.data || [],
+              borderColor: '#DC2626',
+              backgroundColor: 'rgba(220, 38, 38, 0.1)',
+              tension: 0.4,
+              fill: true
+            }]
+          }
+        };
+        return dashboardData.trendData;
+      } catch (error) {
+        console.error('Error fetching trend data:', error);
+        throw error;
+      }
+    }
+
+    async function fetchGLBreakdown(filters = {}) {
+      try {
+        const roleFilters = applyRoleBasedFilters(filters);
+        const data = await fetchData(`${API_ENDPOINTS.dashboard.glBreakdown}?${new URLSearchParams(roleFilters).toString()}`);
+        const labels = (data && data.labels) || [];
+        const values = (data && data.data) || [];
+        dashboardData.glTypeData = {
+          labels,
+          datasets: [{
+            data: values,
+            backgroundColor: ['#3B82F6', '#10B981', '#F59E0B'],
+            borderWidth: 0
+          }]
+        };
+        return dashboardData.glTypeData;
+      } catch (error) {
+        console.error('Error fetching GL breakdown:', error);
+        throw error;
+      }
+    }
+
+    async function fetchCategories(filters = {}) {
+      try {
+        const roleFilters = applyRoleBasedFilters(filters);
+        const data = await fetchData(`${API_ENDPOINTS.dashboard.categories}?${new URLSearchParams(roleFilters).toString()}`);
+        const labels = (data && data.labels) || [];
+        const values = (data && data.data) || [];
+        dashboardData.categoriesData = {
+          labels,
+          datasets: [{
+            label: 'Count',
+            data: values,
+            backgroundColor: ['#06B6D4', '#0EA5E9', '#1D4ED8', '#1E3A8A'],
+            borderRadius: 4
+          }]
+        };
+        return dashboardData.categoriesData;
+      } catch (error) {
+        console.error('Error fetching categories:', error);
+        throw error;
+      }
+    }
+
+    async function fetchTopBranches(filters = {}) {
+      try {
+        const roleFilters = applyRoleBasedFilters(filters);
+        const data = await fetchData(`${API_ENDPOINTS.dashboard.topBranches}?${new URLSearchParams(roleFilters).toString()}`);
+        dashboardData.topBranches = Array.isArray(data)?data:(data?.items||[]);
+        return dashboardData.topBranches;
+      } catch (error) {
+        console.error('Error fetching top branches:', error);
+        throw error;
+      }
+    }
+
+    // Apply role-based filters to API requests
+    function applyRoleBasedFilters(filters = {}) {
+      const roleFilters = { ...filters };
+      
+      if (currentUser.role === 'branch_manager' && currentUser.branch) {
+        // Branch managers can only see their branch data
+        roleFilters.branch = currentUser.branch;
+        roleFilters.branchCode = currentUser.branch;
+      }
+      
+      // Add user role to API request for backend filtering
+      roleFilters.userRole = currentUser.role;
+      roleFilters.userId = currentUser.branch || 'global';
+      
+      return roleFilters;
+    }
+
+    // Filter mock data based on user role (for development)
+    function filterDataByRole(data, dataType) {
+      if (currentUser.role === 'branch_manager' && currentUser.branch) {
+        // For branch managers, filter data to show only their branch
+        switch (dataType) {
+          case 'stats':
+            // Reduce KPI values for single branch view
+            return {
+              totalImbalance: Math.floor(data.totalImbalance * 0.2),
+              balancedCount: Math.floor(data.balancedCount * 0.2),
+              imbalancesCount: Math.floor(data.imbalancesCount * 0.2),
+              proxyCredits: Math.floor(data.proxyCredits * 0.2)
+            };
+          
+          case 'trend':
+            // Reduce trend data for single branch
+            return {
+              day: { ...data.day, data: data.day.data.map(v => Math.floor(v * 0.2)) },
+              week: { ...data.week, data: data.week.data.map(v => Math.floor(v * 0.2)) },
+              month: { ...data.month, data: data.month.data.map(v => Math.floor(v * 0.2)) }
+            };
+          
+          case 'glBreakdown':
+            // Adjust GL breakdown for single branch
+            return {
+              labels: data.labels,
+              data: data.data.map(v => Math.floor(v * 0.3))
+            };
+          
+          case 'categories':
+            // Adjust categories for single branch
+            return {
+              labels: data.labels,
+              data: data.data.map(v => Math.floor(v * 0.25))
+            };
+          
+          case 'topBranches':
+            // For branch managers, show only their branch
+            const branchName = BRANCH_INFO[currentUser.branch]?.name;
+            return branchName ? [{ name: branchName, count: Math.floor(Math.random() * 20) + 10 }] : [];
+          
+          default:
+            return data;
+        }
+      }
+      
+      // Admin and Ops see all data
+      return data;
+    }
+
+    // Role-based export functionality
+    function setupRoleBasedExport() {
+      const exportButtons = document.querySelectorAll('[data-export]');
+      
+      exportButtons.forEach(button => {
+        button.addEventListener('click', function(e) {
+          e.preventDefault();
+          
+          if (!currentUser.permissions.canExportData) {
+            showNotification('Export not allowed for your role', 'error');
+            return;
+          }
+          
+          const exportType = this.getAttribute('data-export');
+          const filters = getCurrentFilters();
+          
+          // Apply role-based filtering to export
+          const exportFilters = applyRoleBasedFilters(filters);
+          
+          // Log export action
+          logUserActivity('export_data', { type: exportType, filters: exportFilters });
+
+          // In production, this would trigger a download
+          console.log(`Exporting ${exportType} with filters:`, exportFilters);
+          showNotification(`${exportType} export started`, 'success');
+        });
+      });
+    }
+
+    // Get current filter values
+    function getCurrentFilters() {
+      const filters = {};
+      
+      const startDate = document.querySelector('input[aria-label="Start date"]');
+      const endDate = document.querySelector('input[aria-label="End date"]');
+      const branch = document.getElementById('branch');
+      const glType = document.querySelector('select[aria-label="Select GL Types"]');
+      const status = document.querySelector('select[aria-label="Select Status"]');
+      
+      if (startDate && startDate.value) filters.startDate = startDate.value;
+      if (endDate && endDate.value) filters.endDate = endDate.value;
+      if (branch && branch.value && branch.value !== 'All Branches') filters.branch = branch.value;
+      if (glType && glType.value && glType.value !== 'All GL Types') filters.glType = glType.value;
+      if (status && status.value && status.value !== 'All Status') filters.status = status.value;
+      
+      return filters;
+    }
+
+    // Add export buttons to the dashboard
+    function addExportButtons() {
+      const filterSection = document.querySelector('.filters-section');
+      if (!filterSection) return;
+      
+      const exportDiv = document.createElement('div');
+      exportDiv.className = 'flex items-center space-x-2 ml-auto';
+      
+      if (currentUser.permissions.canExportData) {
+        exportDiv.innerHTML = `
+          <button data-export="dashboard" class="bg-green-600 text-white text-xs px-3 py-1 rounded hover:bg-green-700 transition">
+            <i class="fas fa-download mr-1"></i>Export Dashboard
+          </button>
+          <button data-export="reports" class="bg-blue-600 text-white text-xs px-3 py-1 rounded hover:bg-blue-700 transition">
+            <i class="fas fa-file-alt mr-1"></i>Export Reports
+          </button>
+        `;
+      }
+      
+      filterSection.appendChild(exportDiv);
+    }
+
+    // Role-based activity logging
+    function logUserActivity(action, details = {}) {
+      const activity = {
+        timestamp: new Date().toISOString(),
+        user: currentUser.role,
+        branch: currentUser.branch || 'global',
+        action: action,
+        details: details,
+        sessionId: generateSessionId()
+      };
+      
+      // In production, this would be sent to backend
+      console.log('User Activity:', activity);
+      
+      // Store in localStorage for demo purposes
+      const activities = JSON.parse(localStorage.getItem('userActivities') || '[]');
+      activities.push(activity);
+      localStorage.setItem('userActivities', JSON.stringify(activities.slice(-50))); // Keep last 50
+    }
+
+    // Generate session ID for tracking
+    function generateSessionId() {
+      if (!window.sessionId) {
+        window.sessionId = 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+      }
+      return window.sessionId;
+    }
+
+    // Show role-specific welcome message
+    function showRoleWelcome() {
+      const messages = {
+        admin: 'Welcome! You have full access to all dashboard features and can manage the entire system.',
+        ops: 'Welcome! You can view all branches and generate reports across the organization.',
+        branch_manager: `Welcome! You are viewing data for ${currentUser.branchName || currentUser.branch || 'your'} branch only.`
+      };
+      
+      const message = messages[currentUser.role];
+      if (message) {
+        showNotification(message, 'info', 5000); // Show for 5 seconds
+      }
+    }
+
+    // Enhanced notification system with different types
+    function showNotification(message, type = 'info', duration = 3000) {
+      // Remove existing notifications
+      const existing = document.querySelectorAll('.notification');
+      existing.forEach(n => n.remove());
+      
+      const notification = document.createElement('div');
+      notification.className = `notification fixed top-4 right-4 z-50 px-4 py-3 rounded-lg shadow-lg text-white max-w-sm transition-all duration-300 transform translate-x-full`;
+      
+      const colors = {
+        success: 'bg-green-600',
+        error: 'bg-red-600',
+        warning: 'bg-yellow-600',
+        info: 'bg-blue-600'
+      };
+      
+      notification.className += ` ${colors[type] || colors.info}`;
+      notification.innerHTML = `
+        <div class="flex items-center">
+          <span class="mr-2">${getNotificationIcon(type)}</span>
+          <span>${message}</span>
+        </div>
+      `;
+      
+      document.body.appendChild(notification);
+      
+      // Animate in
+      setTimeout(() => {
+        notification.classList.remove('translate-x-full');
+      }, 100);
+      
+      // Auto remove
+      setTimeout(() => {
+        notification.classList.add('translate-x-full');
+        setTimeout(() => notification.remove(), 300);
+      }, duration);
+    }
+
+    // Get notification icon based on type
+    function getNotificationIcon(type) {
+      const icons = {
+        success: '<i class="fas fa-check-circle"></i>',
+        error: '<i class="fas fa-exclamation-circle"></i>',
+        warning: '<i class="fas fa-exclamation-triangle"></i>',
+        info: '<i class="fas fa-info-circle"></i>'
+      };
+      return icons[type] || icons.info;
+    }
+
+    // Initialize all charts
+    function initializeCharts() {
+      // Trend Chart (Line)
+      const trendCtx = document.getElementById('trendChart').getContext('2d');
+      window.trendChartInstance = new Chart(trendCtx, {
+        type: 'line',
+        data: dashboardData.trendData.week, // Default to week view
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              display: false
+            },
+            tooltip: {
+              mode: 'index',
+              intersect: false,
+              backgroundColor: 'rgba(0, 0, 0, 0.8)',
+              titleColor: '#fff',
+              bodyColor: '#fff'
+            }
+          },
+          scales: {
+            x: {
+              grid: {
+                display: false
+              },
+              ticks: {
+                color: '#6B7280',
+                font: {
+                  size: 11
+                }
+              }
+            },
+            y: {
+              grid: {
+                color: '#E5E7EB'
+              },
+              ticks: {
+                color: '#6B7280',
+                font: {
+                  size: 10
+                }
+              }
+            }
+          },
+          interaction: {
+            mode: 'nearest',
+            axis: 'x',
+            intersect: false
+          }
+        }
+      });
+
+      // GL Type Chart (Doughnut)
+      const glTypeCtx = document.getElementById('glTypeChart').getContext('2d');
+      window.glTypeChartInstance = new Chart(glTypeCtx, {
+        type: 'doughnut',
+        data: dashboardData.glTypeData,
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              display: false
+            },
+            tooltip: {
+              backgroundColor: 'rgba(0, 0, 0, 0.8)',
+              titleColor: '#fff',
+              bodyColor: '#fff',
+              callbacks: {
+                label: function(context) {
+                  const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                  const value = context.parsed;
+                  const pct = total ? Math.round((value / total) * 100) : 0;
+                  return `${context.label}: ${pct}%`;
+                }
+              }
+            }
+          },
+          cutout: '60%'
+        }
+      });
+
+      // Categories Chart (Bar)
+      const categoriesCtx = document.getElementById('categoriesChart').getContext('2d');
+      window.categoriesChartInstance = new Chart(categoriesCtx, {
+        type: 'bar',
+        data: dashboardData.categoriesData,
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              display: false
+            },
+            tooltip: {
+              backgroundColor: 'rgba(0, 0, 0, 0.8)',
+              titleColor: '#fff',
+              bodyColor: '#fff'
+            }
+          },
+          scales: {
+            x: {
+              grid: {
+                display: false
+              },
+              ticks: {
+                color: '#6B7280',
+                font: {
+                  size: 10
+                }
+              }
+            },
+            y: {
+              grid: {
+                color: '#E5E7EB'
+              },
+              ticks: {
+                color: '#6B7280',
+                font: {
+                  size: 10
+                }
+              }
+            }
+          }
+        }
+      });
+    }
+
+    // Setup filter event handlers
+    function setupFilterHandlers() {
+      const applyFiltersBtn = document.querySelector('button[aria-label="Apply Filters"]');
+      const branchSelect = document.getElementById('branch');
+      const glTypeSelect = document.querySelector('select[aria-label="Select GL Types"]');
+      const startDateInput = document.querySelector('input[aria-label="Start date"]');
+      const endDateInput = document.querySelector('input[aria-label="End date"]');
+      const statusSelect = document.querySelector('select[aria-label="Select Status"]');
+
+      applyFiltersBtn.addEventListener('click', function() {
+        const filters = {
+          branch: branchSelect.value,
+          glType: glTypeSelect.value,
+          startDate: startDateInput.value,
+          endDate: endDateInput.value,
+          status: statusSelect.value
+        };
+        
+        // Log filters for now - replace with API call
+        console.log('Applying filters:', filters);
+        
+        // Simulate API call and chart update
+        updateDashboardWithFilters(filters);
+      });
+    }
+
+    // Setup time range button handlers
+    function setupTimeRangeHandlers() {
+      const timeRangeButtons = document.querySelectorAll('[aria-label*="view"]');
+      let currentTrendChart = null;
+
+      timeRangeButtons.forEach(button => {
+        button.addEventListener('click', function() {
+          // Remove active state from all buttons
+          timeRangeButtons.forEach(btn => {
+            btn.classList.remove('bg-gray-800', 'text-white');
+            btn.classList.add('text-gray-600', 'border', 'border-gray-300');
+          });
+
+          // Add active state to clicked button
+          this.classList.remove('text-gray-600', 'border', 'border-gray-300');
+          this.classList.add('bg-gray-800', 'text-white');
+
+          // Determine which time range was selected
+          let timeRange = 'week'; // default
+          if (this.textContent.trim() === 'Day') {
+            timeRange = 'day';
+          } else if (this.textContent.trim() === 'Month') {
+            timeRange = 'month';
+          }
+
+          // Update the trend chart
+          updateTrendChart(timeRange);
+        });
+      });
+
+      // Initialize with week view active
+      const weekButton = document.querySelector('[aria-label="Week view"]');
+      if (weekButton) {
+        weekButton.classList.remove('text-gray-600', 'border', 'border-gray-300');
+        weekButton.classList.add('bg-gray-800', 'text-white');
+      }
+    }
+
+    // Update trend chart based on selected time range
+    function updateTrendChart(timeRange) {
+      const trendCtx = document.getElementById('trendChart');
+      
+      // Destroy existing chart if it exists
+      if (window.trendChartInstance) {
+        window.trendChartInstance.destroy();
+      }
+
+      // Create new chart with selected time range data
+      window.trendChartInstance = new Chart(trendCtx, {
+        type: 'line',
+        data: dashboardData.trendData[timeRange],
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              display: false
+            },
+            tooltip: {
+              mode: 'index',
+              intersect: false,
+              backgroundColor: 'rgba(0, 0, 0, 0.8)',
+              titleColor: '#fff',
+              bodyColor: '#fff'
+            }
+          },
+          scales: {
+            x: {
+              grid: {
+                display: false
+              },
+              ticks: {
+                color: '#6B7280',
+                font: {
+                  size: 11
+                }
+              }
+            },
+            y: {
+              grid: {
+                color: '#E5E7EB'
+              },
+              ticks: {
+                color: '#6B7280',
+                font: {
+                  size: 10
+                }
+              }
+            }
+          },
+          interaction: {
+            mode: 'nearest',
+            axis: 'x',
+            intersect: false
+          }
+        }
+      });
+    }
+
+    // Update dashboard based on filters
+    function updateDashboardWithFilters(filters) {
+      // Show loading state and refresh all data
+      refreshDashboardData(filters);
+    }
+
+    // Refresh all dashboard data with filters
+    async function refreshDashboardData(filters = {}) {
+      try {
+        showLoadingState();
+        
+        // Fetch all data with filters
+        await Promise.all([
+          fetchDashboardStats(filters),
+          fetchTrendData(filters),
+          fetchGLBreakdown(filters),
+          fetchCategories(filters),
+          fetchTopBranches(filters)
+        ]);
+        
+        // Update all UI components
+        updateKPIs();
+        updateCharts();
+        updateGlLegend();
+        updateTopBranchesTable();
+        
+        // Hide loading state
+        hideLoadingState();
+        
+        // Show success message
+        showNotification('Filters applied successfully', 'success');
+      } catch (error) {
+        console.error('Error refreshing dashboard data:', error);
+        showNotification('Failed to apply filters', 'error');
+        hideLoadingState();
+      }
+    }
+
+    // Update KPI values
+    function updateKPIs() {
+      // This would normally fetch from API
+      const kpis = dashboardData.kpis;
+      
+      // Update KPI displays
+      document.querySelector('[aria-label="Total Absolute Imbalance"] .kpi-value').textContent = kpis.totalImbalance.toLocaleString();
+      document.querySelector('[aria-label="Total Absolute Imbalance"] .kpi-sub').textContent = `+0% from yesterday`; // Placeholder
+      document.querySelector('[aria-label="Balanced Count"] .kpi-value').textContent = kpis.balancedCount.toLocaleString();
+      document.querySelector('[aria-label="Balanced Count"] .kpi-sub').textContent = `${kpis.balancedCount / (kpis.balancedCount + kpis.imbalancesCount) * 100}% success rate`; // Placeholder
+      document.querySelector('[aria-label="Imbalances Count"] .kpi-value').textContent = kpis.imbalancesCount.toLocaleString();
+      document.querySelector('[aria-label="Imbalances Count"] .kpi-sub').textContent = `Requires attention`; // Placeholder
+      document.querySelector('[aria-label="Proxy Credits"] .kpi-value').textContent = kpis.proxyCredits.toLocaleString();
+      document.querySelector('[aria-label="Proxy Credits"] .kpi-sub').textContent = `Manual review needed`; // Placeholder
+    }
+
+    // Update charts with new data
+    function updateCharts() {
+      // Update trend chart if it exists
+      if (window.trendChartInstance) {
+        const currentTimeRange = getCurrentTimeRange();
+        window.trendChartInstance.data = dashboardData.trendData[currentTimeRange];
+        window.trendChartInstance.update();
+      }
+      
+      // Update GL Type chart if it exists
+      if (window.glTypeChartInstance) {
+        window.glTypeChartInstance.data = dashboardData.glTypeData;
+        window.glTypeChartInstance.update();
+      }
+      
+      // Update Categories chart if it exists
+      if (window.categoriesChartInstance) {
+        window.categoriesChartInstance.data = dashboardData.categoriesData;
+        window.categoriesChartInstance.update();
+      }
+      
+      console.log('All charts updated with new data');
+    }
+
+    // Update right-side GL legend percentages from current data
+    function updateGlLegend() {
+      const labels = dashboardData.glTypeData.labels;
+      const values = dashboardData.glTypeData.datasets[0].data;
+      const total = values.reduce((a, b) => a + b, 0) || 1;
+      const pctByLabel = new Map(labels.map((l, i) => [l, Math.round((values[i] / total) * 100)]));
+
+      document.querySelectorAll('[data-key].legend-pct, [data-key] .legend-pct').forEach((el) => {
+        const container = el.closest('[data-key]');
+        if (!container) return;
+        const key = container.getAttribute('data-key');
+        const pct = pctByLabel.get(key);
+        if (typeof pct === 'number') {
+          el.textContent = pct + '%';
+        }
+      });
+    }
+
+    // Get current active time range
+    function getCurrentTimeRange() {
+      const activeButton = document.querySelector('[aria-label*="view"].bg-gray-800');
+      if (activeButton) {
+        const text = activeButton.textContent.trim();
+        if (text === 'Day') return 'day';
+        if (text === 'Month') return 'month';
+      }
+      return 'week'; // default
+    }
+
+    // Update top branches table with new data
+    function updateTopBranchesTable() {
+      const tbody = document.querySelector('#topBranchesTable tbody');
+      if (!tbody) return;
+      
+      // Clear existing rows
+      tbody.innerHTML = '';
+      
+      // Add new rows
+      dashboardData.topBranches.forEach((branch, index) => {
+        const row = document.createElement('tr');
+        row.className = index % 2 === 0 ? 'bg-gray-100' : 'bg-gray-50';
+        
+        row.innerHTML = `
+          <td class="py-2 px-3">${branch.name}</td>
+          <td class="py-2 px-3">${branch.count}</td>
+        `;
+        
+        tbody.appendChild(row);
+      });
+    }
+
+    // Loading state management
+    function showLoadingState() {
+      // Show loading on charts
+      document.querySelectorAll('.chart-container').forEach(chart => {
+        chart.innerHTML = '<div class="chart-loading">Loading...</div>';
+      });
+      
+      // Show loading on KPIs
+      document.querySelectorAll('[aria-label*="Imbalance"] .text-2xl, [aria-label*="Count"] .text-2xl, [aria-label*="Credits"] .text-2xl').forEach(el => {
+        el.innerHTML = '<span class="text-gray-400">...</span>';
+      });
+      
+      // Show loading on table
+      const tableBody = document.querySelector('#topBranchesTable tbody');
+      if (tableBody) {
+        tableBody.innerHTML = '<tr><td colspan="2" class="text-center py-4 text-gray-400">Loading...</td></tr>';
+      }
+      
+      // Disable filter button
+      const filterBtn = document.querySelector('button[aria-label="Apply Filters"]');
+      if (filterBtn) {
+        filterBtn.disabled = true;
+        filterBtn.textContent = 'Loading...';
+      }
+    }
+
+    function hideLoadingState() {
+      // Re-enable filter button
+      const filterBtn = document.querySelector('button[aria-label="Apply Filters"]');
+      if (filterBtn) {
+        filterBtn.disabled = false;
+        filterBtn.textContent = 'Apply Filters';
+      }
+      
+      console.log('Loading complete');
+    }
+
+    // Notification system (reusing global container)
+    function showNotification(message, type = 'info', duration=3000) {
+      const host=document.getElementById('notification-container');
+      const div=document.createElement('div');
+      const color= type==='success'?'bg-green-600': type==='error'?'bg-red-600': type==='warning'?'bg-yellow-600':'bg-blue-600';
+      div.className=`${color} text-white text-xs rounded px-3 py-2 shadow`;
+      div.textContent=message; host.appendChild(div); setTimeout(()=>div.remove(), duration);
+    }
+
+    // Quick action handlers
+    document.addEventListener('click', function(e) {
+      if (e.target.closest('[aria-label="Upload Imbalance Excel"]')) {
+        window.location.href = 'upload_enhanced.html';
+      } else if (e.target.closest('[aria-label="Generate Reports"]')) {
+        window.location.href = 'Report.html';
+      } else if (e.target.closest('[aria-label="View Audit Logs"]')) {
+        window.location.href = 'audit.html';
+      }
+    });
+
+    // KPI card click handlers for drill-down
+    document.addEventListener('click', function(e) {
+      const card = e.target.closest('[aria-label]');
+      if (card && card.getAttribute('aria-label').includes('Imbalance')) {
+        // Navigate to balancing view with pre-filtered data
+        window.location.href = 'balancing.html';
+      }
+    });
+
+    // Real-time updates / periodic refresh
+    function setupRealTimeUpdates(intervalMs = 60000) {
+      setInterval(() => {
+        const hasActiveFilters = document.querySelector('input[type="date"]:not([value=""])') ||
+                                document.querySelector('#branch:not([value="All Branches"])') ||
+                                document.querySelector('select[aria-label*="GL Types"]:not([value="All GL Types"])') ||
+                                document.querySelector('select[aria-label*="Status"]:not([value="All Status"])');
+        if (!hasActiveFilters) refreshDashboardData().catch(()=>{});
+      }, intervalMs);
+      // Optional: hook SSE/WS here in future using API_ENDPOINTS
+    }
+
+    // Recent activity
+    async function loadRecentActivity(){
+      try{
+        const roleFilters = applyRoleBasedFilters({ limit: 5 });
+        const data = await fetchData(`${API_ENDPOINTS.dashboard.activity}?${new URLSearchParams(roleFilters).toString()}`);
+        const items = Array.isArray(data)?data:(data?.items||[]);
+        const list = document.querySelector('[aria-label="Recent Activity"] ul');
+        if (!list) return;
+        list.innerHTML='';
+        items.forEach(a=>{
+          const li=document.createElement('li');
+          li.className='flex justify-between items-start';
+          const color = a.type==='error'?'red': a.type==='success'?'green': a.type==='warning'?'yellow':'blue';
+          li.innerHTML=`<div class="flex items-start space-x-2 max-w-[80%]">
+            <span class="flex-shrink-0 bg-${color}-100 text-${color}-600 rounded-full w-5 h-5 flex items-center justify-center text-[10px]"><i class="fas ${a.icon||'fa-info-circle'}"></i></span>
+            <div>
+              <p class="font-semibold text-[10px] text-${color}-700 leading-tight">${a.title||a.message||'Activity'}</p>
+              <p class="text-[8px] text-gray-500 leading-tight">${a.subtitle||''}</p>
+            </div>
+          </div>
+          <span class="text-[8px] text-gray-400">${a.timeAgo || (a.date? new Date(a.date).toLocaleTimeString(): '')}</span>`;
+          list.appendChild(li);
+        });
+        if (!list.children.length){ list.innerHTML = '<li class="text-[10px] text-gray-500">No recent activity</li>'; }
+      } catch(e){ const list = document.querySelector('[aria-label="Recent Activity"] ul'); if (list) list.innerHTML = '<li class="text-[10px] text-red-600">Unable to load activity</li>'; }
+    }
+
+    // Realtime updates via SSE/WS
+    function debounce(fn, wait){ let t; return (...args)=>{ clearTimeout(t); t=setTimeout(()=>fn(...args), wait); }; }
+    const debouncedRefresh = debounce(()=> refreshDashboardData().catch(()=>{}), 500);
+    function subscribeToDashboardEvents(){
+      const token = encodeURIComponent(getAuthToken());
+      const evtPath = API_ENDPOINTS.dashboardEvents || '/dashboard/events';
+      const wsPath = API_ENDPOINTS.dashboardWs || '/dashboard/ws';
+      try{
+        const es = new EventSource(`${API_BASE_URL}${evtPath}?token=${token}`);
+        es.onmessage = ()=> debouncedRefresh(); es.onerror = ()=>{}; window.__dashStream = es; return;
+      } catch{}
+      try{
+        const ws = new WebSocket(`${API_BASE_URL}`.replace(/^http/, 'ws') + `${wsPath}?token=${token}`);
+        ws.onmessage = ()=> debouncedRefresh(); ws.onerror=()=>{}; window.__dashStream = ws; return;
+      } catch{}
+    }
+    window.addEventListener('beforeunload', ()=>{ try{ window.__dashStream?.close?.(); }catch{} });
+
+    // Kick off periodic refresh and recent activity
+    setupRealTimeUpdates(60000);
+    subscribeToDashboardEvents();
+    loadRecentActivity();
+  </script>
+ </body>
+</html>

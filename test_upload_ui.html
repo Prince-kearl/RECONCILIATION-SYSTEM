@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload UI Test</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+</head>
+<body class="bg-gray-100 p-8">
+    <div class="max-w-4xl mx-auto">
+        <h1 class="text-2xl font-bold mb-6">Upload UI Test</h1>
+        
+        <!-- Test Controls -->
+        <div class="bg-white rounded-lg p-4 mb-6">
+            <h2 class="text-lg font-semibold mb-4">Test Controls</h2>
+            <div class="space-x-4">
+                <button onclick="simulateUpload('bank', 'success')" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+                    Simulate Bank Upload Success
+                </button>
+                <button onclick="simulateUpload('collection', 'success')" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">
+                    Simulate Collection Upload Success
+                </button>
+                <button onclick="simulateUpload('bank', 'error')" class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600">
+                    Simulate Upload Error
+                </button>
+                <button onclick="resetUI()" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">
+                    Reset UI
+                </button>
+            </div>
+        </div>
+
+        <!-- Include the upload_enhanced.html content -->
+        <iframe src="upload_enhanced.html" width="100%" height="800" frameborder="0"></iframe>
+    </div>
+
+    <script>
+        // Simulate upload responses
+        function simulateUpload(type, result) {
+            const iframe = document.querySelector('iframe');
+            const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+            
+            if (result === 'success') {
+                // Simulate successful upload
+                const mockFile = {
+                    name: `${type}_test_file.xlsx`,
+                    size: 1024000
+                };
+                
+                const mockResponse = {
+                    success: true,
+                    upload_id: `${type}_${Date.now()}`,
+                    filename: mockFile.name,
+                    original_filename: mockFile.name,
+                    file_size: mockFile.size,
+                    records_count: 150,
+                    uploaded_at: new Date().toISOString()
+                };
+                
+                // Call the upload function in the iframe
+                iframe.contentWindow.simulateUploadResponse(type, mockFile, mockResponse);
+            } else {
+                // Simulate error
+                const mockFile = {
+                    name: `${type}_error_file.xlsx`,
+                    size: 512000
+                };
+                
+                const mockError = new Error('File format not supported');
+                iframe.contentWindow.simulateUploadError(type, mockFile, mockError);
+            }
+        }
+        
+        function resetUI() {
+            const iframe = document.querySelector('iframe');
+            iframe.contentWindow.location.reload();
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,1660 @@
+<html lang="en">
+ <head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1" name="viewport"/>
+  <title>
+   GL Balancing &amp; Reconciliation
+  </title>
+  <script src="https://cdn.tailwindcss.com">
+  </script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;display=swap" rel="stylesheet"/>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+   body {
+      font-family: 'Inter', sans-serif;
+    }
+    
+    .status-reconciled {
+      background-color: #E6F4EA;
+      color: #28A745;
+    }
+    
+    .status-pending {
+      background-color: #FFF4CC;
+      color: #9E9E9E;
+    }
+    
+    .status-mismatch {
+      background-color: #F8D7DA;
+      color: #DC3545;
+    }
+    
+    .table-container {
+      max-height: 400px;
+      overflow-y: auto;
+    }
+    
+    .sticky-header {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    
+    .selected-row {
+      background-color: #F5F5F5 !important;
+      border-left: 4px solid #FFBF00;
+    }
+    
+    .notification {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 1000;
+      padding: 1rem;
+      border-radius: 0.5rem;
+      color: white;
+      font-weight: 600;
+      transform: translateX(100%);
+      transition: transform 0.3s ease-in-out;
+    }
+    
+    .notification.show {
+      transform: translateX(0);
+    }
+    
+    .notification.success {
+      background-color: #28A745;
+    }
+    
+    .notification.error {
+      background-color: #DC3545;
+    }
+    
+    .notification.warning {
+      background-color: #FFBF00;
+    }
+  </style>
+ </head>
+ <body class="bg-white text-gray-800 min-h-screen flex flex-col">
+  <!-- Notification Container -->
+  <div id="notification-container"></div>
+  
+  <!-- Header -->
+  <header class="bg-[#1f2937] flex items-center justify-between px-6 py-3">
+   <div class="flex items-center space-x-2">
+    <img alt="GCB logo in yellow with eagle icon" class="w-8 h-8" height="32" src="images/gcblogo.png" width="32"/>
+    <h1 class="text-[#FFBF00] font-extrabold text-lg leading-none">
+     RECON <span class="text-white">X</span>
+    </h1>
+   </div>
+   <div class="flex items-center space-x-6">
+    <button aria-label="Send" class="text-white text-xl hover:text-[#FFBF00] transition">
+     <i class="fas fa-paper-plane"></i>
+    </button>
+    <button aria-label="User profile" class="bg-gray-400 bg-opacity-30 rounded-full w-8 h-8 flex items-center justify-center text-white text-sm">
+     <i class="fas fa-user"></i>
+    </button>
+   </div>
+  </header>
+  <!-- Navigation -->
+  <nav class="bg-white border-b border-[#E0E0E0] px-6" aria-label="Primary">
+   <ul class="flex space-x-6 text-sm font-semibold text-[#9E9E9E] pt-3 pb-2">
+    <li>
+     <a href="dashboard.html" class="hover:text-gray-900 inline-block focus:outline-none focus:ring-2 focus:ring-[#FFBF00] rounded">Dashboard</a>
+    </li>
+    <li>
+     <a href="upload_enhanced.html" class="hover:text-gray-900 inline-block focus:outline-none focus:ring-2 focus:ring-[#FFBF00] rounded">Upload</a>
+    </li>
+    <li>
+     <a href="balancing.html" aria-current="page" class="text-[#FFBF00] border-b-2 border-[#FFBF00] pb-1 inline-block focus:outline-none focus:ring-2 focus:ring-[#FFBF00] rounded">Balancing</a>
+    </li>
+    <li>
+     <a href="Report.html" class="hover:text-gray-900 inline-block focus:outline-none focus:ring-2 focus:ring-[#FFBF00] rounded">Reports</a>
+    </li>
+    <li>
+     <a href="audit.html" class="hover:text-gray-900 inline-block focus:outline-none focus:ring-2 focus:ring-[#FFBF00] rounded">Audit</a>
+    </li>
+    <li>
+     <a href="users.html" class="hover:text-gray-900 inline-block focus:outline-none focus:ring-2 focus:ring-[#FFBF00] rounded">Users</a>
+    </li>
+    <li>
+     <a href="profile.html" class="hover:text-gray-900 inline-block focus:outline-none focus:ring-2 focus:ring-[#FFBF00] rounded">Profile</a>
+    </li>
+    <li>
+     <a href="mail.html" class="hover:text-gray-900 inline-block focus:outline-none focus:ring-2 focus:ring-[#FFBF00] rounded">Mail</a>
+    </li>
+   </ul>
+  </nav>
+  <div class="max-w-[1200px] w-full mx-auto p-4 md:p-6 flex-grow flex flex-col">
+   <!-- Page Header -->
+   <header class="mb-3">
+    <h1 class="text-[#FFBF00] font-extrabold text-xl md:text-2xl leading-tight">
+     GL Balancing &amp; Reconciliation
+    </h1>
+    <nav class="text-xs text-[#9E9E9E] mt-1 flex flex-wrap gap-1 md:gap-2">
+     <span>
+      Dashboard
+     </span>
+     <span>
+      &gt;
+     </span>
+     <span>
+      GL Reconciliation
+     </span>
+     <span>
+      &gt;
+     </span>
+     <span class="text-[#FFBF00] font-semibold">
+      Balance Page
+     </span>
+    </nav>
+   </header>
+   <!-- Controls -->
+   <section class="flex flex-col md:flex-row md:items-center gap-3 mb-4">
+    <div class="flex-1">
+     <input aria-label="Search transactions" class="w-full border border-[#E0E0E0] rounded-md py-2 px-3 text-sm placeholder-[#9E9E9E] focus:outline-none focus:ring-2 focus:ring-[#007BFF] focus:border-transparent" placeholder="Search transactions..." type="search"/>
+    </div>
+    <div class="flex gap-2 flex-wrap md:flex-nowrap">
+     <select aria-label="Select date range" class="border border-[#E0E0E0] rounded-md py-2 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#007BFF] focus:border-transparent">
+      <option>
+       Last 30 Days
+      </option>
+      <option>
+       Last 7 Days
+      </option>
+      <option>
+       Last 90 Days
+      </option>
+     </select>
+     <select aria-label="Select GL Account" class="border border-[#E0E0E0] rounded-md py-2 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#007BFF] focus:border-transparent">
+      <option>
+       All GL Accounts
+      </option>
+      <option>
+       EAGLEPAY
+      </option>
+      <option>
+       TRANSFLOW
+      </option>
+      <option>
+       ETRANZACT
+      </option>
+     </select>
+     <select aria-label="Select status" class="border border-[#E0E0E0] rounded-md py-2 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#007BFF] focus:border-transparent">
+      <option>
+       All Status
+      </option>
+      <option>
+       Reconciled
+      </option>
+      <option>
+       Pending
+      </option>
+      <option>
+       Mismatch
+      </option>
+     </select>
+    </div>
+   </section>
+   <!-- Summary Cards -->
+   <section class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+    <!-- Total Debit -->
+    <div class="border border-yellow-400 rounded-lg p-4 flex items-center justify-between bg-white shadow-sm">
+     <div>
+      <p class="text-xs text-yellow-600 font-semibold mb-1">
+       Total Debit
+      </p>
+      <p class="text-blue-800 font-extrabold text-lg md:text-xl" id="totalDebit">—</p>
+     </div>
+           <button aria-label="Decrease total debit" class="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-xl font-bold select-none hover:bg-blue-200 transition" type="button">
+      −
+     </button>
+    </div>
+    <!-- Total Credit -->
+    <div class="border border-yellow-400 rounded-lg p-4 flex items-center justify-between bg-white shadow-sm">
+     <div>
+      <p class="text-xs text-yellow-600 font-semibold mb-1">
+       Total Credit
+      </p>
+      <p class="text-green-600 font-extrabold text-lg md:text-xl" id="totalCredit">—</p>
+     </div>
+           <button aria-label="Increase total credit" class="w-8 h-8 rounded-full bg-green-100 text-green-600 flex items-center justify-center text-xl font-bold select-none hover:bg-green-200 transition" type="button">
+      +
+     </button>
+    </div>
+    <!-- Difference/Variance -->
+    <div class="border border-yellow-400 rounded-lg p-4 flex items-center justify-between bg-white shadow-sm">
+     <div>
+      <p class="text-xs text-yellow-600 font-semibold mb-1">
+       Difference/Variance
+      </p>
+      <p class="text-red-700 font-extrabold text-lg md:text-xl" id="varianceAmount">—</p>
+      <span id="balanceStatus" class="inline-block bg-[#DC3545] text-white text-[10px] font-semibold rounded px-2 py-0.5 mt-1">
+       Unbalanced
+      </span>
+     </div>
+     <div aria-hidden="true" class="w-8 h-8 rounded-full bg-red-100 text-red-600 flex items-center justify-center text-lg">
+      <i class="fas fa-balance-scale">
+      </i>
+     </div>
+    </div>
+   </section>
+   <!-- Warning Banner -->
+   <section class="bg-[#FFBF00] text-[#1f2937] rounded-md p-3 mb-6 flex flex-col md:flex-row md:items-center justify-between gap-3" role="alert">
+    <div class="flex items-center gap-2 text-sm font-semibold">
+     <i class="fas fa-exclamation-triangle">
+     </i>
+     <span id="varianceText">Variance detected. Review required.</span>
+    </div>
+        <button class="bg-[#FFBF00] hover:brightness-95 text-[#1f2937] text-xs font-semibold rounded px-3 py-1 whitespace-nowrap transition border border-[#E0E0E0]" type="button">
+     Review Details
+    </button>
+   </section>
+   <!-- Main Content Grid -->
+   <section class="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-6">
+    <!-- Transactions Table -->
+    <div class="lg:col-span-3 bg-white rounded-md shadow-sm border border-gray-200 overflow-x-auto">
+     <div class="bg-[#FFBF00] text-[#1f2937] font-semibold text-sm px-4 py-2 rounded-t-md flex justify-between items-center">
+      <span>General Ledger Transactions</span>
+      <div class="flex gap-2">
+       <button onclick="exportData('csv')" class="bg-[#FFBF00] hover:brightness-95 text-[#1f2937] text-xs px-2 py-1 rounded transition border border-[#E0E0E0]">
+         <i class="fas fa-download"></i> CSV
+       </button>
+       <button onclick="exportData('pdf')" class="bg-[#FFBF00] hover:brightness-95 text-[#1f2937] text-xs px-2 py-1 rounded transition border border-[#E0E0E0]">
+         <i class="fas fa-file-pdf"></i> PDF
+       </button>
+      </div>
+     </div>
+     <table class="w-full text-xs md:text-sm border-collapse">
+             <thead class="bg-[#FFE08D] text-[#1f2937] text-left">
+       <tr>
+         <th class="py-2 px-3 font-semibold border-r border-[#FFBF00] min-w-[80px] cursor-pointer hover:bg-[#FFD35C] transition" onclick="sortTable(0)">
+          Date <i class="fas fa-sort ml-1"></i>
+        </th>
+         <th class="py-2 px-3 font-semibold border-r border-[#FFBF00] min-w-[90px] cursor-pointer hover:bg-[#FFD35C] transition" onclick="sortTable(1)">
+          Ref No. <i class="fas fa-sort ml-1"></i>
+        </th>
+         <th class="py-2 px-3 font-semibold border-r border-[#FFBF00] min-w-[60px] cursor-pointer hover:bg-[#FFD35C] transition" onclick="sortTable(2)">
+          GL Code <i class="fas fa-sort ml-1"></i>
+        </th>
+         <th class="py-2 px-3 font-semibold border-r border-[#FFBF00] min-w-[180px] cursor-pointer hover:bg-[#FFD35C] transition" onclick="sortTable(3)">
+          Description <i class="fas fa-sort ml-1"></i>
+        </th>
+         <th class="py-2 px-3 font-semibold border-r border-[#FFBF00] min-w-[90px] text-right cursor-pointer hover:bg-[#FFD35C] transition" onclick="sortTable(4)">
+          Debit <i class="fas fa-sort ml-1"></i>
+        </th>
+         <th class="py-2 px-3 font-semibold border-r border-[#FFBF00] min-w-[90px] text-right cursor-pointer hover:bg-[#FFD35C] transition" onclick="sortTable(5)">
+          Credit <i class="fas fa-sort ml-1"></i>
+        </th>
+         <th class="py-2 px-3 font-semibold border-r border-[#FFBF00] min-w-[110px] text-right cursor-pointer hover:bg-[#FFD35C] transition" onclick="sortTable(6)">
+          Running Balance <i class="fas fa-sort ml-1"></i>
+        </th>
+         <th class="py-2 px-3 font-semibold min-w-[80px] text-center cursor-pointer hover:bg-[#FFD35C] transition" onclick="sortTable(7)">
+          Status <i class="fas fa-sort ml-1"></i>
+        </th>
+       </tr>
+      </thead>
+      <tbody class="text-gray-700"></tbody>
+     </table>
+     <div class="flex justify-between items-center text-xs text-gray-500 px-4 py-2 border-t border-gray-200">
+      <div id="tableCount">Showing 0 entries</div>
+      <nav class="inline-flex items-center space-x-1">
+       <button aria-label="Previous page" class="text-gray-600 hover:text-gray-900 rounded border border-gray-300 px-2 py-1" type="button">
+        Previous
+       </button>
+       <button aria-current="page" class="bg-orange-500 text-white rounded px-3 py-1 font-semibold" type="button">
+        1
+       </button>
+       <button class="border border-gray-300 rounded px-3 py-1 hover:bg-gray-100" type="button">
+        2
+       </button>
+       <button class="border border-gray-300 rounded px-3 py-1 hover:bg-gray-100" type="button">
+        3
+       </button>
+       <button class="border border-gray-300 rounded px-3 py-1 hover:bg-gray-100" type="button">
+        Next
+       </button>
+      </nav>
+     </div>
+    </div>
+    <!-- Reconciliation Tools -->
+    <aside class="bg-white rounded-md shadow-sm border border-gray-200 p-4 flex flex-col gap-4 text-xs md:text-sm">
+     <h2 class="font-semibold text-gray-700 mb-2">
+      Reconciliation Tools
+     </h2>
+           <button class="bg-[#FFBF00] hover:brightness-95 text-[#1f2937] rounded px-3 py-2 w-full flex items-center justify-center gap-2 transition" type="button" id="btnMatch">
+      <i class="fas fa-check-double">
+      </i>
+      Match Entries
+     </button>
+      <button class="bg-[#007BFF] hover:brightness-95 text-white rounded px-3 py-2 w-full flex items-center justify-center gap-2 transition" type="button" id="btnAuto">
+      <i class="fas fa-sync-alt">
+      </i>
+      Auto-Reconcile
+     </button>
+      <button class="bg-[#DC3545] hover:brightness-95 text-white rounded px-3 py-2 w-full flex items-center justify-center gap-2 transition" type="button" id="btnFlag">
+      <i class="fas fa-flag">
+      </i>
+      Flag Issue
+     </button>
+     <div class="text-gray-600 text-xs font-semibold">
+      Reconciliation Notes
+     </div>
+     <textarea id="reconciliationNotes" class="w-full border border-gray-300 rounded-md p-2 text-xs resize-none focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent text-gray-500" placeholder="Add notes about reconciliation status, issues, or actions taken..." rows="4"></textarea>
+     <button class="bg-gray-800 hover:bg-gray-900 text-white rounded px-3 py-1.5 w-full text-xs font-semibold transition" type="button" id="btnSaveNotes">
+      Save Notes
+     </button>
+     
+     <div class="border-t pt-3">
+      <div class="text-gray-600 text-xs font-semibold mb-2">
+       Selected Transactions: <span id="selectedCount">0</span>
+      </div>
+      <button id="bulkReconcile" class="bg-green-600 hover:bg-green-700 text-white rounded px-3 py-2 w-full flex items-center justify-center gap-2 text-xs transition" type="button" disabled>
+       <i class="fas fa-check"></i>
+       Bulk Reconcile
+      </button>
+     </div>
+    </aside>
+   </section>
+   <!-- Bottom Charts -->
+   <section class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+    <!-- Balance Trend -->
+    <div class="bg-white rounded-md shadow-sm border border-gray-200 p-4">
+     <div class="flex justify-between items-center mb-3">
+      <h3 class="font-semibold text-gray-700 text-sm">
+      Balance Trend
+     </h3>
+      <div class="flex gap-2">
+       <button onclick="toggleChartSeries('balanceTrendChart', 0)" class="text-xs px-2 py-1 rounded bg-green-100 text-green-700 hover:bg-green-200 transition">
+        Total
+       </button>
+       <button onclick="toggleChartSeries('balanceTrendChart', 1)" class="text-xs px-2 py-1 rounded bg-blue-100 text-blue-700 hover:bg-blue-200 transition">
+        Debit
+       </button>
+       <button onclick="toggleChartSeries('balanceTrendChart', 2)" class="text-xs px-2 py-1 rounded bg-red-100 text-red-700 hover:bg-red-200 transition">
+        Credit
+       </button>
+       <button onclick="toggleChartSeries('balanceTrendChart', 3)" class="text-xs px-2 py-1 rounded bg-yellow-100 text-yellow-700 hover:bg-yellow-200 transition">
+        Net
+       </button>
+      </div>
+     </div>
+     <div class="relative h-64">
+      <canvas id="balanceTrendChart" class="w-full h-full"></canvas>
+     </div>
+    </div>
+    <!-- Reconciliation Status -->
+    <div class="bg-white rounded-md shadow-sm border border-gray-200 p-4">
+     <div class="flex justify-between items-center mb-3">
+      <h3 class="font-semibold text-gray-700 text-sm">
+      Reconciliation Status
+     </h3>
+      <button onclick="refreshReconciliationData()" class="text-xs px-2 py-1 rounded bg-yellow-100 text-yellow-700 hover:bg-yellow-200 transition">
+       <i class="fas fa-sync-alt"></i> Refresh
+      </button>
+     </div>
+     <div class="relative h-64">
+      <canvas id="reconciliationStatusChart" class="w-full h-full"></canvas>
+     </div>
+    </div>
+   </section>
+
+   <script>
+    async function saveNotes(notes) {
+      try {
+        const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.reconcile}/notes`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${getAuthToken()}`
+          },
+          body: JSON.stringify({
+            notes: notes,
+            timestamp: new Date().toISOString()
+          })
+        });
+  
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+  
+        const result = await response.json();
+        showNotification('Notes saved successfully', 'success');
+        return result;
+      } catch (error) {
+        console.error('Error saving notes:', error);
+        showNotification('Failed to save notes', 'error');
+      }
+    }
+  </script>
+  
+   <!-- Footer -->
+   <footer class="flex flex-col md:flex-row justify-between items-center text-gray-500 text-xs border-t border-gray-200 pt-2 pb-1 gap-2">
+         <button class="flex items-center gap-1 bg-[#FFF4CC] text-[#FFBF00] rounded px-3 py-1 text-xs font-semibold hover:bg-[#FFE08D] transition" type="button">
+     <i class="fas fa-history">
+     </i>
+     Audit Trail
+    </button>
+    <div id="footerTimestamp" class="text-center md:text-right w-full md:w-auto">Last updated: —</div>
+   </footer>
+  </div>
+
+  <!-- Modal for Audit Trail -->
+  <div id="auditModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center">
+    <div class="bg-white rounded-lg p-6 max-w-2xl w-full mx-4 max-h-[80vh] overflow-y-auto">
+      <div class="flex justify-between items-center mb-4">
+        <h3 class="text-lg font-semibold text-gray-800">Audit Trail</h3>
+        <button onclick="closeAuditModal()" class="text-gray-500 hover:text-gray-700">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <div id="auditTrailContent" class="space-y-3">
+        <!-- Audit trail entries will be populated here -->
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Global variables
+    let selectedTransactions = new Set();
+    let currentPage = 1;
+    let itemsPerPage = 5;
+    let sortColumn = 0;
+    let sortDirection = 'asc';
+    let transactions = [];
+    let filteredTransactions = [];
+    let balanceTrendChart = null;
+    let reconciliationStatusChart = null;
+    
+    // API Configuration
+    const API_BASE_URL = 'https://api.reconx.com/v1';
+    const API_ENDPOINTS = window.API_ENDPOINTS || {
+      transactions: '/transactions',
+      summary: '/summary',
+      charts: '/charts',
+      reconcile: '/reconcile',
+      audit: '/audit',
+      reconcileEvents: '/reconcile/events',
+      reconcileWs: '/reconcile/ws'
+    };
+
+    async function fetchData(pathOrUrl, { method='GET', headers={}, body, raw=false, retries=2 } = {}){
+      const url = pathOrUrl.startsWith('http') ? pathOrUrl : `${API_BASE_URL}${pathOrUrl}`;
+      const opts = { method, headers: { 'Authorization': `Bearer ${getAuthToken()}`, ...headers } };
+      if (body !== undefined) opts.body = body;
+      let lastErr; for (let i=0;i<=retries;i++){ try{ const res=await fetch(url, opts); if(!res.ok) throw new Error(`HTTP ${res.status}`); return raw?res:res.json(); } catch(e){ lastErr=e; if(i===retries) throw e; await new Promise(r=>setTimeout(r, 400*(i+1))); } }
+      throw lastErr;
+    }
+
+    // Initialize the application
+    document.addEventListener('DOMContentLoaded', function() {
+      initializeApp();
+    });
+
+    function initializeApp() {
+      // Set up event listeners
+      setupEventListeners();
+      
+      // Load initial data
+      loadInitialData();
+      
+      // Update timestamp
+      updateUserInfo();
+    }
+
+    async function loadInitialData() {
+      try {
+        showNotification('Loading data...', 'success');
+        
+        // Load data in parallel
+        const [transactionsData, summaryData, chartsData] = await Promise.all([
+          fetchTransactions(),
+          fetchSummary(),
+          fetchChartsData()
+        ]);
+        
+        // Update UI with fetched data
+        updateTransactionsTable(transactionsData);
+        updateSummaryCards(summaryData);
+        initializeCharts(chartsData);
+        
+        showNotification('Data loaded successfully', 'success');
+      } catch (error) {
+        console.error('Error loading data:', error);
+        showNotification('Error loading data.', 'error');
+      }
+    }
+
+    // API Fetch Functions
+    async function fetchTransactions(params = {}) {
+      const queryParams = new URLSearchParams({
+        page: currentPage,
+        limit: itemsPerPage,
+        ...params
+      });
+      
+      return await fetchData(`${API_ENDPOINTS.transactions}?${queryParams.toString()}`);
+    }
+
+    async function fetchSummary() {
+      return await fetchData(API_ENDPOINTS.summary);
+    }
+
+    async function fetchChartsData() {
+      return await fetchData(API_ENDPOINTS.charts);
+    }
+
+    async function fetchAuditTrail() {
+      return await fetchData(API_ENDPOINTS.audit);
+    }
+
+    // Helper function to get auth token (implement based on your auth system)
+    function getAuthToken() {
+      return localStorage.getItem('authToken') || 'demo-token';
+    }
+
+    // Sample data fallback
+    function loadSampleData() {
+      const sampleTransactions = [
+        {
+          id: 1,
+          date: '2024-01-15',
+          refNo: 'JE-2024-001',
+          glCode: '1000',
+          description: 'Cash deposit from sales',
+          debit: 15250.00,
+          credit: 0,
+          runningBalance: 15250.00,
+          status: 'Reconciled'
+        },
+        {
+          id: 2,
+          date: '2024-01-15',
+          refNo: 'JE-2024-002',
+          glCode: '1200',
+          description: 'Accounts receivable adjustment',
+          debit: 0,
+          credit: 8475.25,
+          runningBalance: 6774.75,
+          status: 'Pending'
+        },
+        {
+          id: 3,
+          date: '2024-01-14',
+          refNo: 'JE-2024-003',
+          glCode: '2000',
+          description: 'Vendor payment processing',
+          debit: 12890.50,
+          credit: 0,
+          runningBalance: -6115.75,
+          status: 'Mismatch'
+        },
+        {
+          id: 4,
+          date: '2024-01-14',
+          refNo: 'JE-2024-004',
+          glCode: '1000',
+          description: 'Bank transfer reconciliation',
+          debit: 0,
+          credit: 25000.00,
+          runningBalance: 18884.25,
+          status: 'Reconciled'
+        },
+        {
+          id: 5,
+          date: '2024-01-13',
+          refNo: 'JE-2024-005',
+          glCode: '1200',
+          description: 'Customer payment received',
+          debit: 5675.00,
+          credit: 0,
+          runningBalance: 24559.25,
+          status: 'Pending'
+        }
+      ];
+
+      const sampleSummary = {
+        totalDebit: 2547892.50,
+        totalCredit: 2545128.75,
+        variance: 2763.75,
+        isBalanced: false
+      };
+
+      const sampleChartsData = {
+        balanceTrend: {
+          labels: ['Jan 10', 'Jan 11', 'Jan 12', 'Jan 13', 'Jan 14', 'Jan 15'],
+          data: [12500, 15800, 14200, 24559, 18884, 15250],
+          debitData: [10000, 12640, 11360, 19647, 15107, 12200],
+          creditData: [7500, 9480, 8520, 14735, 11330, 9150],
+          netData: [5000, 6320, 5680, 9824, 7554, 6100]
+        },
+        reconciliationStatus: {
+          reconciled: 65,
+          pending: 25,
+          mismatch: 10,
+          inReview: 5,
+          flagged: 3
+        }
+      };
+
+      updateTransactionsTable(sampleTransactions);
+      updateSummaryCards(sampleSummary);
+      initializeCharts(sampleChartsData);
+    }
+
+    function setupEventListeners() {
+      // Search functionality
+      const searchInput = document.querySelector('input[type="search"]');
+      if (searchInput) {
+        searchInput.addEventListener('input', filterTransactions);
+      }
+
+      // Filter functionality
+      const filters = document.querySelectorAll('select');
+      filters.forEach(filter => {
+        filter.addEventListener('change', filterTransactions);
+      });
+
+      // Table row selection
+      setupTableRowSelection();
+
+      // Button functionality
+      setupButtons();
+    }
+
+    function setupButtons() {
+      // Summary card adjustment buttons
+      const debitButton = document.querySelector('button[aria-label="Decrease total debit"]');
+      const creditButton = document.querySelector('button[aria-label="Increase total credit"]');
+      
+      if (debitButton) {
+        debitButton.addEventListener('click', () => adjustAmount('debit', -1000));
+      }
+      if (creditButton) {
+        creditButton.addEventListener('click', () => adjustAmount('credit', 1000));
+      }
+
+      // Reconciliation tool buttons with stable IDs
+      document.getElementById('btnMatch')?.addEventListener('click', matchEntries);
+      document.getElementById('btnAuto')?.addEventListener('click', autoReconcile);
+      document.getElementById('btnFlag')?.addEventListener('click', flagIssue);
+      document.getElementById('btnSaveNotes')?.addEventListener('click', saveNotes);
+
+      // Header buttons
+      const sendButton = document.querySelector('button[aria-label="Send"]');
+      const profileButton = document.querySelector('button[aria-label="User profile"]');
+      const auditButton = document.querySelector('button:has(i.fa-history)');
+      const reviewButton = document.querySelector('button:has(textContent="Review Details")');
+
+      if (sendButton) sendButton.addEventListener('click', sendReport);
+      if (profileButton) profileButton.addEventListener('click', openProfile);
+      if (auditButton) auditButton.addEventListener('click', showAuditTrail);
+      if (reviewButton) reviewButton.addEventListener('click', reviewDetails);
+    }
+
+    function filterTransactions() {
+      const searchTerm = document.querySelector('input[type="search"]').value.toLowerCase();
+      const dateFilter = document.querySelector('select[aria-label="Select date range"]').value;
+      const glAccountFilter = document.querySelector('select[aria-label="Select GL Account"]').value;
+      const statusFilter = document.querySelector('select[aria-label="Select status"]').value;
+
+      // Apply filters to transactions array
+      filteredTransactions = transactions.filter(transaction => {
+        const matchesSearch = !searchTerm || 
+          transaction.refNo.toLowerCase().includes(searchTerm) ||
+          transaction.description.toLowerCase().includes(searchTerm) ||
+          transaction.glCode.includes(searchTerm);
+        
+        const matchesDate = !dateFilter || true; // Simplified date filtering
+        const matchesGL = !glAccountFilter || transaction.glCode === glAccountFilter;
+        const matchesStatus = !statusFilter || transaction.status === statusFilter;
+
+        return matchesSearch && matchesDate && matchesGL && matchesStatus;
+      });
+
+      // Update table with filtered data
+      updateTransactionsTable(filteredTransactions);
+      updateSummaryCardsFromTransactions(filteredTransactions);
+      
+      showNotification('Transactions filtered', 'success');
+    }
+
+    function updateTransactionsTable(transactionsData) {
+      const items = Array.isArray(transactionsData) ? transactionsData : (transactionsData.items || []);
+      const total = Number(transactionsData.total || items.length || 0);
+      transactions = items;
+      filteredTransactions = [...transactions];
+      
+      const tbody = document.querySelector('tbody');
+      tbody.innerHTML = '';
+
+      if (!transactions.length) {
+        tbody.innerHTML = '<tr><td colspan="8" class="text-center py-4 text-gray-400">No transactions found</td></tr>';
+      }
+
+      transactions.forEach((transaction, index) => {
+        const row = document.createElement('tr');
+        row.className = 'border-b border-gray-200 hover:bg-gray-50 cursor-pointer';
+        row.onclick = () => toggleRowSelection(row, index);
+        
+        row.innerHTML = `
+          <td class="py-2 px-3 border-r border-gray-200 whitespace-nowrap">${transaction.date}</td>
+          <td class="py-2 px-3 border-r border-gray-200 whitespace-nowrap">${transaction.refNo}</td>
+          <td class="py-2 px-3 border-r border-gray-200 whitespace-nowrap">${transaction.glCode}</td>
+          <td class="py-2 px-3 border-r border-gray-200">${transaction.description}</td>
+          <td class="py-2 px-3 border-r border-gray-200 text-right">${transaction.debit > 0 ? '$' + transaction.debit.toLocaleString('en-US', {minimumFractionDigits: 2}) : '-'}</td>
+          <td class="py-2 px-3 border-r border-gray-200 text-right">${transaction.credit > 0 ? '$' + transaction.credit.toLocaleString('en-US', {minimumFractionDigits: 2}) : '-'}</td>
+          <td class="py-2 px-3 border-r border-gray-200 text-right">$${transaction.runningBalance.toLocaleString('en-US', {minimumFractionDigits: 2})}</td>
+          <td class="py-2 px-3 text-center">
+            <span class="inline-block status-${transaction.status.toLowerCase()} text-[10px] font-semibold rounded px-2 py-0.5">
+              ${transaction.status}
+            </span>
+          </td>
+        `;
+
+        tbody.appendChild(row);
+      });
+
+      const countEl = document.getElementById('tableCount');
+      if (countEl) {
+        const start = total ? (currentPage - 1) * itemsPerPage + 1 : 0;
+        const end = Math.min(currentPage * itemsPerPage, total);
+        countEl.textContent = `Showing ${start} to ${end} of ${total} entries`;
+      }
+    }
+
+    function updateSummaryCards(summaryData) {
+      const totalDebitEl = document.getElementById('totalDebit');
+      const totalCreditEl = document.getElementById('totalCredit');
+      const varianceEl = document.getElementById('varianceAmount');
+      const balanceStatusEl = document.getElementById('balanceStatus');
+      const warningBanner = document.querySelector('[role="alert"]');
+
+      if (totalDebitEl) {
+        totalDebitEl.textContent = '$' + summaryData.totalDebit.toLocaleString('en-US', {minimumFractionDigits: 2});
+      }
+      if (totalCreditEl) {
+        totalCreditEl.textContent = '$' + summaryData.totalCredit.toLocaleString('en-US', {minimumFractionDigits: 2});
+      }
+      if (varianceEl) {
+        varianceEl.textContent = '$' + Math.abs(summaryData.variance).toLocaleString('en-US', {minimumFractionDigits: 2});
+      }
+
+      if (balanceStatusEl) {
+        if (summaryData.isBalanced) {
+          balanceStatusEl.textContent = 'Balanced';
+          balanceStatusEl.className = 'inline-block bg-green-600 text-white text-[10px] font-semibold rounded px-2 py-0.5 mt-1';
+          if (warningBanner) warningBanner.style.display = 'none';
+        } else {
+          balanceStatusEl.textContent = 'Unbalanced';
+          balanceStatusEl.className = 'inline-block bg-red-600 text-white text-[10px] font-semibold rounded px-2 py-0.5 mt-1';
+          if (warningBanner) warningBanner.style.display = 'flex';
+        }
+      }
+    }
+
+    function updateSummaryCardsFromTransactions(transactions) {
+      const totalDebit = transactions.reduce((sum, t) => sum + t.debit, 0);
+      const totalCredit = transactions.reduce((sum, t) => sum + t.credit, 0);
+      const variance = totalDebit - totalCredit;
+      const isBalanced = Math.abs(variance) < 0.01;
+
+      updateSummaryCards({
+        totalDebit,
+        totalCredit,
+        variance,
+        isBalanced
+      });
+    }
+
+    function adjustAmount(type, amount) {
+      const totalDebitEl = document.getElementById('totalDebit');
+      const totalCreditEl = document.getElementById('totalCredit');
+      const varianceEl = document.getElementById('varianceAmount');
+      
+      if (type === 'debit' && totalDebitEl) {
+        const current = parseFloat(totalDebitEl.textContent.replace(/[$,]/g, ''));
+        const newAmount = Math.max(0, current + amount);
+        totalDebitEl.textContent = '$' + newAmount.toLocaleString('en-US', {minimumFractionDigits: 2});
+      } else if (type === 'credit' && totalCreditEl) {
+        const current = parseFloat(totalCreditEl.textContent.replace(/[$,]/g, ''));
+        const newAmount = Math.max(0, current + amount);
+        totalCreditEl.textContent = '$' + newAmount.toLocaleString('en-US', {minimumFractionDigits: 2});
+      }
+
+      updateVariance();
+      showNotification('Amount adjusted successfully', 'success');
+    }
+
+    function updateVariance() {
+      const totalDebitEl = document.getElementById('totalDebit');
+      const totalCreditEl = document.getElementById('totalCredit');
+      const varianceEl = document.getElementById('varianceAmount');
+      const balanceStatusEl = document.querySelector('.bg-red-600');
+      const warningBanner = document.querySelector('[role="alert"]');
+
+      if (totalDebitEl && totalCreditEl && varianceEl) {
+        const totalDebit = parseFloat(totalDebitEl.textContent.replace(/[$,]/g, ''));
+        const totalCredit = parseFloat(totalCreditEl.textContent.replace(/[$,]/g, ''));
+        const variance = totalDebit - totalCredit;
+        
+        varianceEl.textContent = '$' + Math.abs(variance).toLocaleString('en-US', {minimumFractionDigits: 2});
+        
+        if (Math.abs(variance) < 0.01) {
+          if (balanceStatusEl) {
+            balanceStatusEl.textContent = 'Balanced';
+            balanceStatusEl.className = 'inline-block bg-green-600 text-white text-[10px] font-semibold rounded px-2 py-0.5 mt-1';
+          }
+          if (warningBanner) {
+            warningBanner.style.display = 'none';
+          }
+        } else {
+          if (balanceStatusEl) {
+            balanceStatusEl.textContent = 'Unbalanced';
+            balanceStatusEl.className = 'inline-block bg-red-600 text-white text-[10px] font-semibold rounded px-2 py-0.5 mt-1';
+          }
+          if (warningBanner) {
+            warningBanner.style.display = 'flex';
+          }
+        }
+      }
+    }
+
+    function initializeCharts(chartsData) {
+      // Initialize Balance Trend Chart with multiple data series
+      const balanceCtx = document.getElementById('balanceTrendChart').getContext('2d');
+      balanceTrendChart = new Chart(balanceCtx, {
+        type: 'line',
+        data: {
+          labels: chartsData.balanceTrend.labels,
+          datasets: [
+            {
+              label: 'Total Balance',
+              data: chartsData.balanceTrend.data,
+              borderColor: '#28A745',
+              backgroundColor: 'rgba(40, 167, 69, 0.1)',
+              borderWidth: 3,
+              tension: 0.4,
+              fill: true,
+              pointRadius: 4,
+              pointHoverRadius: 6
+            },
+            {
+              label: 'Debit Balance',
+              data: chartsData.balanceTrend.debitData || chartsData.balanceTrend.data.map(v => v * 0.8),
+              borderColor: '#3b82f6',
+              backgroundColor: 'rgba(59, 130, 246, 0.1)',
+              borderWidth: 2,
+              tension: 0.4,
+              fill: false,
+              pointRadius: 3,
+              pointHoverRadius: 5
+            },
+            {
+              label: 'Credit Balance',
+              data: chartsData.balanceTrend.creditData || chartsData.balanceTrend.data.map(v => v * 0.6),
+              borderColor: '#ef4444',
+              backgroundColor: 'rgba(239, 68, 68, 0.1)',
+              borderWidth: 2,
+              tension: 0.4,
+              fill: false,
+              pointRadius: 3,
+              pointHoverRadius: 5
+            },
+            {
+              label: 'Net Balance',
+              data: chartsData.balanceTrend.netData || chartsData.balanceTrend.data.map(v => v * 0.4),
+              borderColor: '#f59e0b',
+              backgroundColor: 'rgba(245, 158, 11, 0.1)',
+              borderWidth: 2,
+              tension: 0.4,
+              fill: false,
+              pointRadius: 3,
+              pointHoverRadius: 5
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              display: true,
+              position: 'top',
+              labels: {
+                usePointStyle: true,
+                padding: 15,
+                font: {
+                  size: 11
+                }
+              }
+            },
+            tooltip: {
+              mode: 'index',
+              intersect: false,
+              backgroundColor: 'rgba(0, 0, 0, 0.8)',
+              titleColor: '#fff',
+              bodyColor: '#fff',
+              borderColor: '#f59e0b',
+              borderWidth: 1,
+              callbacks: {
+                label: function(context) {
+                  return context.dataset.label + ': $' + context.parsed.y.toLocaleString();
+                }
+              }
+            }
+          },
+          scales: {
+            x: {
+              grid: {
+                color: 'rgba(0, 0, 0, 0.1)',
+                drawBorder: false
+              },
+              ticks: {
+                font: {
+                  size: 10
+                },
+                color: '#6b7280'
+              }
+            },
+            y: {
+              beginAtZero: true,
+              grid: {
+                color: 'rgba(0, 0, 0, 0.1)',
+                drawBorder: false
+              },
+              ticks: {
+                font: {
+                  size: 10
+                },
+                color: '#6b7280',
+                callback: function(value) {
+                  if (value >= 1000) {
+                    return '$' + (value / 1000).toFixed(1) + 'K';
+                  }
+                  return '$' + value.toLocaleString();
+                }
+              }
+            }
+          },
+          interaction: {
+            intersect: false,
+            mode: 'index'
+          },
+          elements: {
+            point: {
+              hoverBackgroundColor: '#f59e0b'
+            }
+          }
+        }
+      });
+
+      // Initialize Reconciliation Status Chart with enhanced styling
+      const statusCtx = document.getElementById('reconciliationStatusChart').getContext('2d');
+      reconciliationStatusChart = new Chart(statusCtx, {
+        type: 'doughnut',
+        data: {
+          labels: ['Reconciled', 'Pending', 'Mismatch', 'In Review', 'Flagged'],
+          datasets: [{
+            data: [
+              chartsData.reconciliationStatus.reconciled,
+              chartsData.reconciliationStatus.pending,
+              chartsData.reconciliationStatus.mismatch,
+              chartsData.reconciliationStatus.inReview || 5,
+              chartsData.reconciliationStatus.flagged || 3
+            ],
+            backgroundColor: [
+              '#28A745', // Green - Reconciled
+              '#FFBF00', // Amber - Pending
+              '#DC3545', // Red - Mismatch
+              '#8b5cf6', // Purple - In Review
+              '#06b6d4'  // Cyan - Flagged
+            ],
+            borderWidth: 2,
+            borderColor: '#ffffff',
+            hoverBorderWidth: 3,
+            hoverBorderColor: '#FFBF00'
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          cutout: '60%',
+          plugins: {
+            legend: {
+              position: 'bottom',
+              labels: {
+                usePointStyle: true,
+                padding: 20,
+                font: {
+                  size: 11
+                },
+                generateLabels: function(chart) {
+                  const data = chart.data;
+                  if (data.labels.length && data.datasets.length) {
+                    return data.labels.map((label, i) => {
+                      const dataset = data.datasets[0];
+                      const value = dataset.data[i];
+                      const total = dataset.data.reduce((a, b) => a + b, 0);
+                      const percentage = ((value / total) * 100).toFixed(1);
+                      
+                      return {
+                        text: `${label}: ${percentage}%`,
+                        fillStyle: dataset.backgroundColor[i],
+                        strokeStyle: dataset.backgroundColor[i],
+                        lineWidth: 0,
+                        pointStyle: 'circle',
+                        hidden: false,
+                        index: i
+                      };
+                    });
+                  }
+                  return [];
+                }
+              }
+            },
+            tooltip: {
+              backgroundColor: 'rgba(0, 0, 0, 0.8)',
+              titleColor: '#fff',
+              bodyColor: '#fff',
+              borderColor: '#f59e0b',
+              borderWidth: 1,
+              callbacks: {
+                label: function(context) {
+                  const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                  const percentage = ((context.parsed / total) * 100).toFixed(1);
+                  return `${context.label}: ${context.parsed} transactions (${percentage}%)`;
+                }
+              }
+            }
+          }
+        }
+      });
+    }
+
+    function updateCharts(chartsData) {
+      if (balanceTrendChart) {
+        balanceTrendChart.data.labels = chartsData.balanceTrend.labels;
+        balanceTrendChart.data.datasets[0].data = chartsData.balanceTrend.data;
+        balanceTrendChart.data.datasets[1].data = chartsData.balanceTrend.debitData || chartsData.balanceTrend.data.map(v => v * 0.8);
+        balanceTrendChart.data.datasets[2].data = chartsData.balanceTrend.creditData || chartsData.balanceTrend.data.map(v => v * 0.6);
+        balanceTrendChart.data.datasets[3].data = chartsData.balanceTrend.netData || chartsData.balanceTrend.data.map(v => v * 0.4);
+        balanceTrendChart.update('active');
+      }
+
+      if (reconciliationStatusChart) {
+        reconciliationStatusChart.data.datasets[0].data = [
+          chartsData.reconciliationStatus.reconciled,
+          chartsData.reconciliationStatus.pending,
+          chartsData.reconciliationStatus.mismatch,
+          chartsData.reconciliationStatus.inReview || 5,
+          chartsData.reconciliationStatus.flagged || 3
+        ];
+        reconciliationStatusChart.update('active');
+      }
+    }
+
+    // Action functions
+    async function matchEntries() {
+      if (selectedTransactions.size === 0) {
+        showNotification('Please select transactions to match', 'warning');
+        return;
+      }
+
+      try {
+        showNotification('Matching entries...', 'success');
+        
+        const selectedIds = Array.from(selectedTransactions).map(index => transactions[index].id);
+        const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.reconcile}/match`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${getAuthToken()}`
+          },
+          body: JSON.stringify({
+            transactionIds: selectedIds,
+            action: 'match'
+          })
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const result = await response.json();
+        
+        // Update local data
+        await refreshData();
+        
+        showNotification('Entries matched successfully', 'success');
+      } catch (error) {
+        console.error('Error matching entries:', error);
+        showNotification('Error matching entries', 'error');
+      }
+    }
+
+    async function autoReconcile() {
+      try {
+        showNotification('Auto-reconciliation in progress...', 'success');
+        
+        const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.reconcile}/auto`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${getAuthToken()}`
+          },
+          body: JSON.stringify({
+            filters: {
+              dateRange: document.querySelector('select[aria-label="Select date range"]').value,
+              glAccount: document.querySelector('select[aria-label="Select GL Account"]').value,
+              status: document.querySelector('select[aria-label="Select status"]').value
+            }
+          })
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const result = await response.json();
+        
+        // Update local data
+        await refreshData();
+        
+        showNotification(`Auto-reconciliation completed. ${result.reconciledCount} transactions processed.`, 'success');
+      } catch (error) {
+        console.error('Error in auto-reconciliation:', error);
+        showNotification('Error in auto-reconciliation', 'error');
+      }
+    }
+
+    async function flagIssue() {
+      if (selectedTransactions.size === 0) {
+        showNotification('Please select transactions to flag', 'warning');
+        return;
+      }
+
+      try {
+        const selectedIds = Array.from(selectedTransactions).map(index => transactions[index].id);
+        const notes = document.querySelector('textarea').value;
+        
+        const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.reconcile}/flag`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${getAuthToken()}`
+          },
+          body: JSON.stringify({
+            transactionIds: selectedIds,
+            notes: notes,
+            action: 'flag'
+          })
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const result = await response.json();
+        
+        // Update local data
+        await refreshData();
+        
+        showNotification('Issue flagged for review', 'warning');
+      } catch (error) {
+        console.error('Error flagging issue:', error);
+        showNotification('Error flagging issue', 'error');
+      }
+    }
+
+    async function saveNotes() {
+      const ta = document.getElementById('reconciliationNotes');
+      const notes = (ta?.value ?? '').trim();
+      if (!notes) return showNotification('Please enter notes before saving', 'warning');
+      try {
+        const res = await fetch(`${API_BASE_URL}${API_ENDPOINTS.reconcile}/notes`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${getAuthToken()}` },
+          body: JSON.stringify({ notes })
+        });
+        if (!res.ok) throw new Error(`HTTP ${res.status} ${await res.text()}`);
+        showNotification('Notes saved successfully', 'success');
+        if (ta) ta.value = '';
+      } catch (e) {
+        console.error('Error saving notes:', e);
+        showNotification('Error saving notes', 'error');
+      }
+    }
+
+    async function bulkReconcile() {
+      if (selectedTransactions.size === 0) {
+        showNotification('Please select transactions to reconcile', 'warning');
+        return;
+      }
+      
+      try {
+        showNotification(`Bulk reconciling ${selectedTransactions.size} transactions...`, 'success');
+        
+        const selectedIds = Array.from(selectedTransactions).map(index => transactions[index].id);
+        
+        const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.reconcile}/bulk`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${getAuthToken()}`
+          },
+          body: JSON.stringify({
+            transactionIds: selectedIds,
+            action: 'reconcile'
+          })
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const result = await response.json();
+        
+        // Update local data
+        await refreshData();
+        
+        selectedTransactions.clear();
+        updateSelectedCount();
+        showNotification(`Bulk reconciliation completed. ${result.reconciledCount} transactions processed.`, 'success');
+      } catch (error) {
+        console.error('Error in bulk reconciliation:', error);
+        showNotification('Error in bulk reconciliation', 'error');
+      }
+    }
+
+    let _refreshing = false;
+    async function refreshData() {
+      if (_refreshing) return;
+      _refreshing = true;
+      try {
+        const [transactionsData, summaryData, chartsData] = await Promise.all([
+          fetchTransactions(),
+          fetchSummary(),
+          fetchChartsData()
+        ]);
+        
+        updateTransactionsTable(transactionsData);
+        updateSummaryCards(summaryData);
+        updateCharts(chartsData);
+      } catch (error) {
+        console.error('Error refreshing data:', error);
+        showNotification('Error refreshing data', 'error');
+      } finally { _refreshing = false; }
+    }
+
+    function exportData(format) {
+      const table = document.querySelector('table');
+      const rows = Array.from(table.querySelectorAll('tbody tr'));
+      
+      if (format === 'csv') {
+        exportToCSV(rows);
+      } else if (format === 'pdf') {
+        exportToPDF(rows);
+      }
+      
+      showNotification(`Exporting data as ${format.toUpperCase()}...`, 'success');
+    }
+
+    function exportToCSV(rows) {
+      const headers = ['Date', 'Ref No.', 'GL Code', 'Description', 'Debit', 'Credit', 'Running Balance', 'Status'];
+      const csvContent = [
+        headers.join(','),
+        ...rows.map(row => {
+          return Array.from(row.cells).map(cell => {
+            const text = cell.textContent.trim().replace(/"/g, '""');
+            return `"${text}"`;
+          }).join(',');
+        })
+      ].join('\n');
+      
+      const blob = new Blob([csvContent], { type: 'text/csv' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `gl-transactions-${new Date().toISOString().split('T')[0]}.csv`;
+      a.click();
+      window.URL.revokeObjectURL(url);
+    }
+
+    function exportToPDF(rows) {
+      // Simple PDF export simulation
+      const content = rows.map(row => {
+        return Array.from(row.cells).map(cell => cell.textContent.trim()).join(' | ');
+      }).join('\n');
+      
+      const blob = new Blob([content], { type: 'text/plain' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `gl-transactions-${new Date().toISOString().split('T')[0]}.txt`;
+      a.click();
+      window.URL.revokeObjectURL(url);
+    }
+
+    function sendReport() {
+      showNotification('Report sent successfully', 'success');
+    }
+
+    function openProfile() {
+      showNotification('Opening profile...', 'success');
+    }
+
+    async function showAuditTrail() {
+      const modal = document.getElementById('auditModal');
+      const content = document.getElementById('auditTrailContent');
+      
+      try {
+        showNotification('Loading audit trail...', 'success');
+        
+        const auditData = await fetchAuditTrail();
+        
+        content.innerHTML = auditData.entries.map(entry => `
+          <div class="border-l-4 border-orange-500 pl-4 py-2">
+            <div class="flex justify-between items-start">
+              <div class="font-semibold text-gray-800">${entry.action}</div>
+              <div class="text-xs text-gray-500">${new Date(entry.timestamp).toLocaleString()}</div>
+            </div>
+            <div class="text-sm text-gray-600">${entry.details}</div>
+            <div class="text-xs text-gray-500">By: ${entry.user}</div>
+          </div>
+        `).join('');
+        
+        modal.classList.remove('hidden');
+        showNotification('Audit trail loaded', 'success');
+      } catch (error) {
+        console.error('Error loading audit trail:', error);
+        
+        // Fallback to sample data
+        const auditEntries = [
+          { timestamp: '2024-01-15 14:45:00', user: 'John Smith', action: 'Reconciled transaction JE-2024-001', details: 'Manual reconciliation completed' },
+          { timestamp: '2024-01-15 14:30:00', user: 'John Smith', action: 'Flagged transaction JE-2024-003', details: 'Variance detected in vendor payment' },
+          { timestamp: '2024-01-15 14:15:00', user: 'John Smith', action: 'Auto-reconciliation run', details: 'Processed 15 transactions automatically' },
+          { timestamp: '2024-01-15 14:00:00', user: 'John Smith', action: 'Notes updated', details: 'Added reconciliation notes for GL Account 1200' }
+        ];
+        
+        content.innerHTML = auditEntries.map(entry => `
+          <div class="border-l-4 border-orange-500 pl-4 py-2">
+            <div class="flex justify-between items-start">
+              <div class="font-semibold text-gray-800">${entry.action}</div>
+              <div class="text-xs text-gray-500">${entry.timestamp}</div>
+            </div>
+            <div class="text-sm text-gray-600">${entry.details}</div>
+            <div class="text-xs text-gray-500">By: ${entry.user}</div>
+          </div>
+        `).join('');
+        
+        modal.classList.remove('hidden');
+        showNotification('Using sample audit data', 'warning');
+      }
+    }
+
+    function closeAuditModal() {
+      document.getElementById('auditModal').classList.add('hidden');
+    }
+
+    function reviewDetails() {
+      showNotification('Opening detailed review...', 'success');
+    }
+
+    function showNotification(message, type) {
+      const container = getToastHost();
+      const notification = document.createElement('div');
+      notification.className = `notification ${type}`;
+      notification.textContent = message;
+      
+      container.appendChild(notification);
+      
+      // Show notification
+      setTimeout(() => notification.classList.add('show'), 100);
+      
+      // Remove notification after 3 seconds
+      setTimeout(() => {
+        notification.classList.remove('show');
+        setTimeout(() => container.removeChild(notification), 300);
+      }, 3000);
+    }
+
+    function setupTableRowSelection() {
+      const rows = document.querySelectorAll('tbody tr');
+      rows.forEach((row, index) => {
+        row.addEventListener('click', () => toggleRowSelection(row, index));
+        row.style.cursor = 'pointer';
+      });
+    }
+
+    function toggleRowSelection(row, index) {
+      if (selectedTransactions.has(index)) {
+        selectedTransactions.delete(index);
+        row.classList.remove('selected-row');
+      } else {
+        selectedTransactions.add(index);
+        row.classList.add('selected-row');
+      }
+      
+      updateSelectedCount();
+      showNotification(`Transaction ${selectedTransactions.has(index) ? 'selected' : 'deselected'}`, 'success');
+    }
+
+    function updateSelectedCount() {
+      const selectedCountEl = document.getElementById('selectedCount');
+      const bulkReconcileBtn = document.getElementById('bulkReconcile');
+      
+      if (selectedCountEl) {
+        selectedCountEl.textContent = selectedTransactions.size;
+      }
+      
+      if (bulkReconcileBtn) {
+        bulkReconcileBtn.disabled = selectedTransactions.size === 0;
+      }
+    }
+
+    function sortTable(column) {
+      if (sortColumn === column) {
+        sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
+      } else {
+        sortColumn = column;
+        sortDirection = 'asc';
+      }
+
+      const tbody = document.querySelector('tbody');
+      const rows = Array.from(tbody.querySelectorAll('tr'));
+
+      rows.sort((a, b) => {
+        const aVal = a.cells[column].textContent.trim();
+        const bVal = b.cells[column].textContent.trim();
+        
+        let aNum, bNum;
+        
+        // Handle numeric values
+        if (column === 4 || column === 5 || column === 6) { // Debit, Credit, Running Balance
+          aNum = parseFloat(aVal.replace(/[$,]/g, '')) || 0;
+          bNum = parseFloat(bVal.replace(/[$,]/g, '')) || 0;
+          
+          if (sortDirection === 'asc') {
+            return aNum - bNum;
+          } else {
+            return bNum - aNum;
+          }
+        }
+        
+        // Handle date values
+        if (column === 0) { // Date
+          const aDate = new Date(aVal);
+          const bDate = new Date(bVal);
+          
+          if (sortDirection === 'asc') {
+            return aDate - bDate;
+          } else {
+            return bDate - aDate;
+          }
+        }
+        
+        // Handle string values
+        if (sortDirection === 'asc') {
+          return aVal.localeCompare(bVal);
+        } else {
+          return bVal.localeCompare(aVal);
+        }
+      });
+
+      // Clear and re-append sorted rows
+      rows.forEach(row => tbody.appendChild(row));
+      
+      // Update sort indicators
+      updateSortIndicators(column);
+      
+      showNotification(`Table sorted by column ${column + 1}`, 'success');
+    }
+
+    function updateSortIndicators(activeColumn) {
+      const headers = document.querySelectorAll('th');
+      headers.forEach((header, index) => {
+        const icon = header.querySelector('i');
+        if (icon) {
+          if (index === activeColumn) {
+            icon.className = sortDirection === 'asc' ? 'fas fa-sort-up ml-1' : 'fas fa-sort-down ml-1';
+          } else {
+            icon.className = 'fas fa-sort ml-1';
+          }
+        }
+      });
+    }
+
+    function updateUserInfo() {
+      const now = new Date();
+      const timestamp = now.toLocaleString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+      
+      const userInfoEl = document.getElementById('footerTimestamp');
+      if (userInfoEl) {
+        userInfoEl.textContent = `Last updated: ${timestamp}`;
+      }
+    }
+
+    // Real-time data refresh and timestamp updates
+    setInterval(updateUserInfo, 60000);
+    setInterval(refreshData, 60000); // Refresh data every 60 seconds
+    
+    // Add refresh button functionality
+    function addRefreshButton() {
+      const header = document.querySelector('.bg-orange-500.text-white.font-semibold');
+      if (header && !document.getElementById('refreshBtn')) {
+        const refreshBtn = document.createElement('button');
+        refreshBtn.id = 'refreshBtn';
+        refreshBtn.className = 'bg-orange-600 hover:bg-orange-700 text-white text-xs px-2 py-1 rounded transition ml-2';
+        refreshBtn.innerHTML = '<i class="fas fa-sync-alt"></i> Refresh';
+        refreshBtn.onclick = async () => {
+          refreshBtn.disabled = true;
+          refreshBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading...';
+          await refreshData();
+          refreshBtn.disabled = false;
+          refreshBtn.innerHTML = '<i class="fas fa-sync-alt"></i> Refresh';
+        };
+        header.appendChild(refreshBtn);
+      }
+    }
+    
+    // Initialize refresh button
+    setTimeout(addRefreshButton, 1000);
+
+    // Chart interaction functions
+    function toggleChartSeries(chartId, seriesIndex) {
+      const chart = chartId === 'balanceTrendChart' ? balanceTrendChart : reconciliationStatusChart;
+      if (chart) {
+        const dataset = chart.data.datasets[seriesIndex];
+        dataset.hidden = !dataset.hidden;
+        chart.update();
+        
+        // Update button styling
+        const buttons = document.querySelectorAll(`[onclick*="${chartId}"]`);
+        buttons.forEach((btn, index) => {
+          if (index === seriesIndex) {
+            btn.classList.toggle('bg-gray-200', dataset.hidden);
+            btn.classList.toggle('text-gray-500', dataset.hidden);
+          }
+        });
+      }
+    }
+
+    async function refreshReconciliationData() {
+      try {
+        showNotification('Refreshing reconciliation data...', 'success');
+        const chartsData = await fetchChartsData();
+        updateCharts(chartsData);
+        showNotification('Reconciliation data updated', 'success');
+      } catch (error) {
+        console.error('Error refreshing reconciliation data:', error);
+        showNotification('Error refreshing data', 'error');
+      }
+    }
+
+    // Add chart click handlers for drill-down functionality
+    function setupChartInteractions() {
+      if (balanceTrendChart) {
+        balanceTrendChart.options.onClick = function(event, elements) {
+          if (elements.length > 0) {
+            const element = elements[0];
+            const datasetIndex = element.datasetIndex;
+            const dataIndex = element.index;
+            const value = this.data.datasets[datasetIndex].data[dataIndex];
+            const label = this.data.labels[dataIndex];
+            
+            showNotification(`Clicked: ${this.data.datasets[datasetIndex].label} on ${label} = $${value.toLocaleString()}`, 'success');
+          }
+        };
+      }
+
+      if (reconciliationStatusChart) {
+        reconciliationStatusChart.options.onClick = function(event, elements) {
+          if (elements.length > 0) {
+            const element = elements[0];
+            const dataIndex = element.index;
+            const value = this.data.datasets[0].data[dataIndex];
+            const label = this.data.labels[dataIndex];
+            const total = this.data.datasets[0].data.reduce((a, b) => a + b, 0);
+            const percentage = ((value / total) * 100).toFixed(1);
+            
+            showNotification(`Clicked: ${label} - ${value} transactions (${percentage}%)`, 'success');
+          }
+        };
+      }
+    }
+
+    // Initialize chart interactions after charts are created
+    setTimeout(setupChartInteractions, 2000);
+
+    function getToastHost() {
+      let container = document.getElementById('notification-container');
+      if (!container) {
+        container = document.createElement('div');
+        container.id = 'notification-container';
+        container.className = 'fixed top-3 right-3 z-[9999] space-y-2';
+        document.body.appendChild(container);
+      }
+      return container;
+    }
+
+    // Realtime updates via SSE/WS
+    function debounce(fn, wait){ let t; return (...args)=>{ clearTimeout(t); t=setTimeout(()=>fn(...args), wait); }; }
+    const debouncedRefresh = debounce(()=> refreshData().catch(()=>{}), 500);
+    function subscribeToReconcileEvents(){
+      const token = encodeURIComponent(getAuthToken());
+      try{ const es = new EventSource(`${API_BASE_URL}${API_ENDPOINTS.reconcileEvents}?token=${token}`); es.onmessage=()=>debouncedRefresh(); es.onerror=()=>{}; window.__reconStream=es; return; }catch{}
+      try{ const ws = new WebSocket(`${API_BASE_URL}`.replace(/^http/, 'ws') + `${API_ENDPOINTS.reconcileWs}?token=${token}`); ws.onmessage=()=>debouncedRefresh(); ws.onerror=()=>{}; window.__reconStream=ws; return; }catch{}
+    }
+    window.addEventListener('beforeunload', ()=>{ try{ window.__reconStream?.close?.(); }catch{} });
+    subscribeToReconcileEvents();
+  </script>
+ </body>
+</html>

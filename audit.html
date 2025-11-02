@@ -1,0 +1,691 @@
+<html lang="en">
+ <head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1" name="viewport"/>
+  <title>
+   Audit Trail
+  </title>
+  <script src="https://cdn.tailwindcss.com">
+  </script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&amp;display=swap" rel="stylesheet"/>
+  <style>
+   body {
+      font-family: 'Inter', sans-serif;
+    }
+  </style>
+ </head>
+ <body class="bg-[#F9FAFB] text-[#374151] min-h-screen">
+  <div id="notification-container" class="fixed top-3 right-3 z-50 space-y-2"></div>
+  <!-- Header -->
+  <header class="bg-[#27343d] flex items-center justify-between px-6 py-3">
+   <div class="flex items-center space-x-2">
+    <img alt="GCB logo in yellow with eagle icon" class="w-8 h-8" height="32" src="images/gcblogo.png" width="32"/>
+    <h1 class="text-yellow-400 font-extrabold text-lg leading-none">
+     RECON <span class="text-white">X</span>
+    </h1>
+   </div>
+   <div class="flex items-center space-x-6">
+    <button aria-label="Send" class="text-white text-xl hover:text-yellow-400 transition">
+     <i class="fas fa-paper-plane"></i>
+    </button>
+    <button aria-label="User profile" class="bg-gray-400 bg-opacity-30 rounded-full w-8 h-8 flex items-center justify-center text-white text-sm">
+     <i class="fas fa-user"></i>
+    </button>
+   </div>
+  </header>
+  <!-- Navigation -->
+  <nav class="bg-white border-b border-gray-200 px-6" aria-label="Primary">
+   <ul class="flex space-x-6 text-sm font-semibold text-gray-700 pt-3 pb-2">
+    <li>
+     <a href="dashboard.html" class="hover:text-gray-900 inline-block focus:outline-none focus:ring-2 focus:ring-yellow-400 rounded">Dashboard</a>
+    </li>
+    <li>
+     <a href="upload_enhanced.html" class="hover:text-gray-900 inline-block focus:outline-none focus:ring-2 focus:ring-yellow-400 rounded">Upload</a>
+    </li>
+    <li>
+     <a href="balancing.html" class="hover:text-gray-900 inline-block focus:outline-none focus:ring-2 focus:ring-yellow-400 rounded">Balancing</a>
+    </li>
+    <li>
+     <a href="Report.html" class="hover:text-gray-900 inline-block focus:outline-none focus:ring-2 focus:ring-yellow-400 rounded">Reports</a>
+    </li>
+    <li>
+     <a href="audit.html" aria-current="page" class="text-yellow-500 border-b-2 border-yellow-400 pb-1 inline-block focus:outline-none focus:ring-2 focus:ring-yellow-400 rounded">Audit</a>
+    </li>
+    <li>
+     <a href="users.html" class="hover:text-gray-900 inline-block focus:outline-none focus:ring-2 focus:ring-yellow-400 rounded">Users</a>
+    </li>
+    <li>
+     <a href="profile.html" class="hover:text-gray-900 inline-block focus:outline-none focus:ring-2 focus:ring-yellow-400 rounded">Profile</a>
+    </li>
+    <li>
+     <a href="mail.html" class="hover:text-gray-900 inline-block focus:outline-none focus:ring-2 focus:ring-yellow-400 rounded">Mail</a>
+    </li>
+   </ul>
+  </nav>
+  <div class="max-w-[1200px] mx-auto px-4 py-6 flex flex-col lg:flex-row gap-6">
+   <main class="flex-1">
+    <h1 class="text-2xl font-semibold text-[#111827]">
+     Audit Trail
+    </h1>
+    <p class="text-sm text-[#6B7280] mt-1 max-w-[480px]">
+     Track every activity and change across the system for compliance, accountability, and traceability.
+    </p>
+    <!-- Filters -->
+    <form id="auditFiltersForm" class="mt-6 bg-white rounded-md border border-[#E5E7EB] p-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4" onsubmit="return false">
+     <div>
+      <label class="block text-xs font-semibold text-[#6B7280] mb-1" for="dateRange">
+       Date Range
+      </label>
+      <input class="w-full border border-[#D1D5DB] rounded px-2 py-1 text-sm text-[#6B7280] placeholder:text-[#9CA3AF]" id="dateRange" onblur="if(!this.value) this.type='text'" onfocus="(this.type='date')" placeholder="mm/dd/yyyy" type="text"/>
+     </div>
+     <div>
+      <label class="block text-xs font-semibold text-[#6B7280] mb-1" for="actionType">
+       Action Type
+      </label>
+      <select class="w-full border border-[#D1D5DB] rounded px-2 py-1 text-sm text-[#374151]" id="actionType">
+       <option>
+        All Actions
+       </option>
+       <option>
+        Upload
+       </option>
+       <option>
+        Reconcile
+       </option>
+       <option>
+        Report View
+       </option>
+       <option>
+        Delete
+       </option>
+       <option>
+        Edit
+       </option>
+       <option>
+        Approval
+       </option>
+       <option>
+        Login
+       </option>
+       <option>
+        Report Generation
+       </option>
+      </select>
+     </div>
+     <div>
+      <label class="block text-xs font-semibold text-[#6B7280] mb-1" for="user">
+       User
+      </label>
+      <select class="w-full border border-[#D1D5DB] rounded px-2 py-1 text-sm text-[#374151]" id="user">
+       <option>
+        All Users
+       </option>
+       <option>
+        Sarah Johnson
+       </option>
+       <option>
+        Mike Davis
+       </option>
+       <option>
+        John Smith
+       </option>
+       <option>
+        Emma Wilson
+       </option>
+       <option>
+        Lisa Chen
+       </option>
+       <option>
+        Robert Taylor
+       </option>
+      </select>
+     </div>
+     <div>
+      <label class="block text-xs font-semibold text-[#6B7280] mb-1" for="search">
+       Search
+      </label>
+      <div class="relative text-[#9CA3AF]">
+       <input class="w-full border border-[#D1D5DB] rounded pl-8 pr-2 py-1 text-sm text-[#6B7280] placeholder:text-[#9CA3AF]" id="search" placeholder="Search by keywords..." type="search"/>
+       <i aria-hidden="true" class="fas fa-search absolute left-2 top-1/2 -translate-y-1/2 pointer-events-none text-[#9CA3AF] text-xs">
+       </i>
+      </div>
+     </div>
+     <div class="sm:col-span-2 md:col-span-4 flex gap-2 mt-2">
+      <button id="btnApplyFilters" class="bg-yellow-400 text-white text-xs font-semibold rounded px-3 py-1 flex items-center gap-1" type="submit">
+       <i class="fas fa-filter">
+       </i>
+       Apply Filters
+      </button>
+      <button id="btnResetFilters" class="bg-gray-100 text-[#374151] text-xs font-semibold rounded px-3 py-1 flex items-center gap-1" type="reset">
+       <i class="fas fa-undo-alt">
+       </i>
+       Reset
+      </button>
+      <button id="btnExportLogs" class="bg-gray-100 text-[#374151] text-xs font-semibold rounded px-3 py-1 flex items-center gap-1" type="button">
+       <i class="fas fa-file-export">
+       </i>
+       Export Logs
+      </button>
+     </div>
+    </form>
+    <!-- Stats -->
+    <section class="mt-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 text-xs font-semibold">
+     <div class="bg-white rounded-md border border-[#E5E7EB] p-3 flex items-center justify-between">
+      <div>
+       <p class="text-[#6B7280]">
+        Total Actions Today
+       </p>
+       <p id="stat-actions-today" class="text-[#111827] text-xl leading-none mt-1">0</p>
+      </div>
+      <div class="bg-yellow-100 text-yellow-700 rounded p-2 flex items-center justify-center" title="Clock icon">
+       <i class="fas fa-clock text-sm">
+       </i>
+      </div>
+     </div>
+     <div class="bg-white rounded-md border border-[#E5E7EB] p-3 flex items-center justify-between">
+      <div>
+       <p class="text-[#6B7280]">
+        Uploads This Week
+       </p>
+       <p id="stat-uploads-week" class="text-[#111827] text-xl leading-none mt-1">0</p>
+      </div>
+      <div class="bg-blue-100 text-blue-700 rounded p-2 flex items-center justify-center" title="Upload icon">
+       <i class="fas fa-cloud-upload-alt text-sm">
+       </i>
+      </div>
+     </div>
+     <div class="bg-white rounded-md border border-[#E5E7EB] p-3 flex items-center justify-between">
+      <div>
+       <p class="text-[#6B7280]">
+        Failed Actions
+       </p>
+       <p id="stat-failed-actions" class="text-[#111827] text-xl leading-none mt-1">0</p>
+      </div>
+      <div class="bg-red-100 text-red-700 rounded p-2 flex items-center justify-center" title="Warning icon">
+       <i class="fas fa-exclamation-triangle text-sm">
+       </i>
+      </div>
+     </div>
+     <div class="bg-white rounded-md border border-[#E5E7EB] p-3 flex items-center justify-between">
+      <div>
+       <p class="text-[#6B7280] text-[10px]">
+        Most Active User
+       </p>
+       <p id="stat-most-active" class="text-[#111827] font-semibold mt-1 text-sm">-</p>
+      </div>
+      <div class="bg-green-100 text-green-700 rounded p-2 flex items-center justify-center" title="User icon">
+       <i class="fas fa-user-friends text-sm">
+       </i>
+      </div>
+     </div>
+    </section>
+    <!-- Table -->
+    <section class="mt-6 bg-white rounded-md border border-[#E5E7EB] p-4 overflow-x-auto">
+     <div class="flex justify-between items-center mb-3">
+      <h2 class="text-sm font-semibold text-[#374151]">
+       System Audit Logs
+      </h2>
+      <div class="flex items-center gap-1 text-xs text-[#6B7280]">
+       <label class="select-none" for="entries">
+        Show:
+       </label>
+       <select class="border border-[#D1D5DB] rounded px-2 py-1 text-xs text-[#374151]" id="entries">
+        <option>
+         25
+        </option>
+        <option>
+         50
+        </option>
+        <option>
+         100
+        </option>
+       </select>
+       <span>
+        entries
+       </span>
+      </div>
+     </div>
+     <div id="logsLoading" class="hidden text-xs text-[#6B7280] mb-2">Loading logs...</div>
+     <table class="w-full text-xs text-left text-[#6B7280] border-collapse">
+      <thead>
+       <tr class="border-b border-[#E5E7EB]">
+        <th class="py-2 pr-4 font-semibold cursor-pointer select-none">
+         TIMESTAMP
+         <i class="fas fa-sort ml-1 text-[#9CA3AF]">
+         </i>
+        </th>
+        <th class="py-2 pr-4 font-semibold cursor-pointer select-none">
+         USER
+         <i class="fas fa-sort ml-1 text-[#9CA3AF]">
+         </i>
+        </th>
+        <th class="py-2 pr-4 font-semibold cursor-pointer select-none">
+         ROLE
+         <i class="fas fa-sort ml-1 text-[#9CA3AF]">
+         </i>
+        </th>
+        <th class="py-2 pr-4 font-semibold cursor-pointer select-none">
+         ACTION
+         <i class="fas fa-sort ml-1 text-[#9CA3AF]">
+         </i>
+        </th>
+        <th class="py-2 pr-4 font-semibold cursor-pointer select-none">
+         DETAILS
+        </th>
+        <th class="py-2 font-semibold cursor-pointer select-none text-right">
+         STATUS
+         <i class="fas fa-sort ml-1 text-[#9CA3AF]">
+         </i>
+        </th>
+       </tr>
+      </thead>
+      <tbody id="logsTbody" class="divide-y divide-[#E5E7EB]"></tbody>
+     </table>
+     <div class="mt-3 flex flex-wrap justify-between items-center text-[10px] text-[#6B7280]">
+      <div id="logsCount">Showing 0 entries</div>
+      <nav id="logsPager" aria-label="Pagination" class="inline-flex rounded-md shadow-sm"></nav>
+     </div>
+    </section>
+    <!-- Info box -->
+    <section class="mt-6 bg-white border border-[#E5E7EB] rounded-md p-4 text-xs text-[#374151] flex items-start gap-3 max-w-[600px]">
+     <div class="flex-shrink-0 bg-blue-100 text-blue-700 rounded-full p-2 mt-0.5" title="Shield icon">
+      <i class="fas fa-shield-alt text-sm">
+      </i>
+     </div>
+     <div>
+      <p class="font-semibold text-sm">
+       Security &amp; Compliance
+      </p>
+      <p class="text-[#6B7280] leading-tight">
+       All activities are logged in accordance with audit &amp; compliance standards. Data retention policy: 7 years.
+      </p>
+     </div>
+    </section>
+   </main>
+   <aside class="w-full lg:w-[280px] flex flex-col gap-4">
+    <div class="bg-white rounded-md border border-[#E5E7EB] p-4">
+     <h3 class="text-sm font-semibold text-[#111827] mb-3">
+      Quick Actions
+     </h3>
+     <button id="btnExportAllSidebar" class="w-full bg-yellow-400 text-white text-xs font-semibold rounded px-3 py-2 flex items-center justify-center gap-2 mb-3">
+      <i class="fas fa-download">
+      </i>
+      Export All Logs
+     </button>
+     <button id="btnSendToAuditor" class="w-full bg-white border border-[#D1D5DB] text-[#374151] text-xs font-semibold rounded px-3 py-2 flex items-center justify-center gap-2 mb-3">
+      <i class="fas fa-envelope">
+      </i>
+      Send to Auditor
+     </button>
+     <div class="flex items-center gap-2 text-xs text-[#6B7280] select-none">
+      <i class="fas fa-bell">
+      </i>
+      <span>
+       Auto Notifications
+      </span>
+      <label class="ml-auto relative inline-flex items-center cursor-pointer" for="toggle">
+       <input class="sr-only peer" disabled="" id="toggle" type="checkbox"/>
+       <div class="w-10 h-5 bg-gray-200 rounded-full peer peer-focus:ring-2 peer-focus:ring-yellow-400 peer-checked:bg-yellow-400 relative">
+        <div class="absolute left-0.5 top-0.5 bg-white w-4 h-4 rounded-full transition-transform peer-checked:translate-x-5">
+        </div>
+       </div>
+      </label>
+     </div>
+    </div>
+    <div class="bg-white rounded-md border border-[#E5E7EB] p-4 text-xs text-[#6B7280]">
+     <h4 class="font-semibold text-[#374151] mb-2">
+      Recent Activity Summary
+     </h4>
+     <ul id="activitySummaryList" class="space-y-1"></ul>
+    </div>
+    <div class="bg-white rounded-md border border-[#E5E7EB] p-4 text-xs text-[#6B7280]">
+     <h4 class="font-semibold text-[#374151] mb-2">
+      System Health
+     </h4>
+     <dl class="space-y-2">
+      <div class="flex justify-between items-center">
+       <dt>
+        Database Status
+       </dt>
+       <dd id="dbStatusWrapper">
+        <span id="dbStatus" class="inline-block bg-gray-100 text-gray-700 text-[10px] font-semibold rounded-full px-2 py-[2px]">
+         Unknown
+        </span>
+       </dd>
+      </div>
+      <div class="flex justify-between items-center">
+       <dt>
+        Backup Status
+       </dt>
+       <dd id="backupStatusWrapper">
+        <span id="backupStatus" class="inline-block bg-gray-100 text-gray-700 text-[10px] font-semibold rounded-full px-2 py-[2px]">
+         Unknown
+        </span>
+       </dd>
+      </div>
+      <div class="flex justify-between items-center">
+       <dt>
+        Last Sync
+       </dt>
+       <dd id="lastSync" class="text-[9px]">—</dd>
+      </div>
+     </dl>
+    </div>
+   </aside>
+  </div>
+ <script>
+  const API_BASE_URL = 'https://api.reconx.com/v1';
+  const API_ENDPOINTS = window.API_ENDPOINTS || { audit: '/audit/logs', health: '/system/health', auditExport: '/audit/export', auditSend: '/audit/send', auditEvents: '/audit/events', auditWs: '/audit/ws', statsSummary: '/audit/stats/summary' };
+  function getAuthToken(){ return localStorage.getItem('authToken') || 'demo-token'; }
+  async function fetchData(pathOrUrl, { method='GET', headers={}, body, raw=false, retries=1 } = {}){
+    const url = pathOrUrl.startsWith('http') ? pathOrUrl : `${API_BASE_URL}${pathOrUrl}`;
+    const opts = { method, headers: { 'Authorization': `Bearer ${getAuthToken()}`, ...headers } };
+    if (body !== undefined) opts.body = body;
+    let lastErr;
+    for (let i=0;i<=retries;i++){
+      try { const res = await fetch(url, opts); if (!res.ok) throw new Error(`HTTP ${res.status}`); return raw ? res : res.json(); }
+      catch(e){ lastErr=e; if (i===retries) throw e; await new Promise(r=>setTimeout(r, 400*(i+1))); }
+    }
+    throw lastErr;
+  }
+
+  const formEl = document.getElementById('auditFiltersForm');
+  const dateRangeEl = document.getElementById('dateRange');
+  const actionTypeEl = document.getElementById('actionType');
+  const userEl = document.getElementById('user');
+  const searchEl = document.getElementById('search');
+  const entriesEl = document.getElementById('entries');
+  const tbodyEl = document.getElementById('logsTbody');
+  const countEl = document.getElementById('logsCount');
+  const pagerEl = document.getElementById('logsPager');
+  const exportBtn = document.getElementById('btnExportLogs');
+  const exportAllSidebarBtn = document.getElementById('btnExportAllSidebar');
+  const sendToAuditorBtn = document.getElementById('btnSendToAuditor');
+
+  const statActionsToday = document.getElementById('stat-actions-today');
+  const statUploadsWeek = document.getElementById('stat-uploads-week');
+  const statFailedActions = document.getElementById('stat-failed-actions');
+  const statMostActive = document.getElementById('stat-most-active');
+  const activitySummaryList = document.getElementById('activitySummaryList');
+  const dbStatusEl = document.getElementById('dbStatus');
+  const backupStatusEl = document.getElementById('backupStatus');
+  const lastSyncEl = document.getElementById('lastSync');
+
+  let state = { page: 1, size: 25, total: 0, sort: '', order: 'desc', filters: { startDate: '', endDate: '', type: '', category: '', source: '' } };
+
+  formEl.addEventListener('submit', async (e) => { e.preventDefault(); applyFilters(); });
+  formEl.addEventListener('reset', () => { setTimeout(() => { state.page = 1; state.filters = { startDate: '', endDate: '', type: '', category: '', source: '' }; loadAll(); }, 0); });
+  entriesEl.addEventListener('change', () => { state.size = parseInt(entriesEl.value, 10) || 25; state.page = 1; loadAuditLogs(); });
+
+  function applyFilters(){
+    // Map existing UI to requested params if available; fallback to blanks
+    const startDate = (document.getElementById('fromDate') && document.getElementById('fromDate').value) || '';
+    const endDate = (document.getElementById('toDate') && document.getElementById('toDate').value) || '';
+    const typeSel = document.getElementById('reportType') ? document.getElementById('reportType').value : (actionTypeEl?.value || '');
+    const categorySel = document.getElementById('category') ? document.getElementById('category').value : '';
+    const sourceSel = document.getElementById('fileSource') ? document.getElementById('fileSource').value : '';
+    state.filters = { startDate, endDate, type: typeSel, category: categorySel, source: sourceSel };
+    state.page = 1;
+    loadAll();
+  }
+
+  async function fetchAuditLogs(params){
+    const qs = new URLSearchParams(params);
+    return fetchData(`${API_ENDPOINTS.audit}?${qs.toString()}`, {});
+  }
+
+  async function loadAuditLogs(){
+    const params = {
+      page: String(state.page),
+      size: String(state.size),
+      startDate: state.filters.startDate || '',
+      endDate: state.filters.endDate || '',
+      type: state.filters.type || '',
+      category: state.filters.category || '',
+      source: state.filters.source || ''
+    };
+    logsLoadingEl.classList.remove('hidden');
+    try {
+      const { items = [], total = 0, pageSize } = await fetchAuditLogs(params);
+      state.total = Number(total || 0);
+      if (pageSize) state.size = pageSize;
+      renderAuditTable(items);
+      renderPager();
+      const start = (state.total === 0) ? 0 : (state.page - 1) * state.size + 1;
+      const end = Math.min(state.page * state.size, state.total);
+      countEl.textContent = `Showing ${start} to ${end} of ${state.total} entries`;
+      if (!items.length) showEmptyState();
+    } catch(e) {
+      console.error(e);
+      showToast('Failed to load audit logs', 'error');
+      renderAuditTable([]);
+      showEmptyState();
+      countEl.textContent = 'Showing 0 entries';
+    } finally {
+      logsLoadingEl.classList.add('hidden');
+    }
+  }
+
+  function statusBadge(status){
+    const s = String(status || '').toLowerCase();
+    if (s === 'success') return 'bg-green-100 text-green-700';
+    if (s === 'failed' || s === 'error') return 'bg-red-100 text-red-700';
+    if (s === 'pending') return 'bg-yellow-100 text-yellow-700';
+    return 'bg-gray-100 text-gray-700';
+  }
+
+  function clearTbody(){ tbodyEl.innerHTML = ''; }
+
+  function showEmptyState(){
+    clearTbody();
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td colspan="6" class="py-4 text-center text-[11px] text-[#9CA3AF]">No data found</td>`;
+    tbodyEl.appendChild(tr);
+  }
+
+  function renderAuditTable(items){
+    tbodyEl.innerHTML = '';
+    items.forEach((log) => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td class="py-2 pr-4 whitespace-nowrap text-[#374151] font-mono text-[11px]">${new Date(log.timestamp).toISOString().slice(0,19).replace('T',' ')}</td>
+        <td class="py-2 pr-4 whitespace-nowrap flex items-center gap-2">
+          ${log.userAvatar ? `<img src="${log.userAvatar}" alt="" class="w-6 h-6 rounded-full object-cover"/>` : ''}
+          <span class="text-[#374151] font-semibold text-[12px]">${log.userName || log.user || '-'}</span>
+        </td>
+        <td class="py-2 pr-4 whitespace-nowrap text-[11px]">${log.role || '-'}</td>
+        <td class="py-2 pr-4 whitespace-nowrap text-[11px]">${log.action || log.actionType || '-'}</td>
+        <td class="py-2 pr-4 text-[11px] truncate max-w-[300px]" title="${(log.details || '').replace(/\"/g,'&quot;')}">${log.details || ''}</td>
+        <td class="py-2 text-right whitespace-nowrap"><span class="${statusBadge(log.status)} text-[10px] font-semibold rounded-full px-2 py-[2px]">${log.status || '-'}</span></td>`;
+      tbodyEl.appendChild(tr);
+    });
+  }
+
+  function renderPager(){
+    pagerEl.innerHTML = '';
+    const pages = Math.max(1, Math.ceil(state.total / state.size));
+    const mkBtn = (label, disabled, onClick, extra='') => {
+      const b = document.createElement('button');
+      b.className = `relative inline-flex items-center px-2 py-1 border border-[#E5E7EB] bg-white text-[#6B7280] hover:bg-gray-50 ${extra}`;
+      if (disabled) { b.disabled = true; b.classList.add('opacity-50','cursor-not-allowed'); }
+      b.textContent = label; if(onClick) b.addEventListener('click', onClick); return b;
+    };
+    pagerEl.appendChild(mkBtn('Previous', state.page <= 1, () => { state.page--; loadAuditLogs(); }, 'rounded-l'));
+    for (let p = 1; p <= pages; p++) {
+      const b = mkBtn(String(p), false, () => { state.page = p; loadAuditLogs(); }, p === state.page ? 'bg-yellow-400 text-white font-semibold' : '');
+      pagerEl.appendChild(b);
+    }
+    pagerEl.appendChild(mkBtn('Next', state.page >= pages, () => { state.page++; loadAuditLogs(); }, 'rounded-r'));
+  }
+
+  async function loadStats(){
+    try {
+      const res = await fetchData(API_ENDPOINTS.statsSummary, { raw:true });
+      if (!res.ok) return;
+      const s = await res.json();
+      statActionsToday.textContent = Number(s.todayActions || 0).toLocaleString();
+      statUploadsWeek.textContent = Number(s.uploadsWeek || 0).toLocaleString();
+      statFailedActions.textContent = Number(s.failed || 0).toLocaleString();
+      statMostActive.textContent = s.mostActiveUser || '-';
+
+      // Recent Activity Summary
+      activitySummaryList.innerHTML = '';
+      const lines = [
+        { color: 'bg-green-500', text: `${Number(s.success || 0).toLocaleString()} successful actions` },
+        { color: 'bg-red-500', text: `${Number(s.failed || 0).toLocaleString()} failed actions` },
+        { color: 'bg-yellow-400', text: `${Number(s.pending || 0).toLocaleString()} pending actions` },
+      ];
+      lines.forEach(l => {
+        const li = document.createElement('li');
+        li.className = 'flex items-center gap-2';
+        li.innerHTML = `<span class="inline-block w-2 h-2 rounded-full ${l.color}"></span><span>${l.text}</span>`;
+        activitySummaryList.appendChild(li);
+      });
+    } catch(e){ console.error('Stats load error', e); }
+  }
+
+  async function exportLogs(format='csv'){
+    try{
+      const params = new URLSearchParams({ startDate: state.filters.startDate || '', endDate: state.filters.endDate || '', type: state.filters.type || '', category: state.filters.category || '', source: state.filters.source || '' });
+      const res = await fetchData(`${API_ENDPOINTS.auditExport}?format=${encodeURIComponent(format)}&${params.toString()}`, { raw:true });
+      if(!res.ok) throw new Error('Export failed');
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a'); a.href = url; a.download = `audit-logs.${format}`; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+      showToast('Export started', 'success');
+    } catch(e){ console.error(e); alert('Export failed'); }
+  }
+
+  async function sendToAuditor(){
+    try {
+      const res = await fetchData(API_ENDPOINTS.auditSend, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ filters: state.filters }), raw:true });
+      if (!res.ok) throw new Error('Send failed');
+      alert('Logs sent to auditor');
+    } catch(e){ console.error(e); alert('Failed to send to auditor'); }
+  }
+
+  exportBtn.addEventListener('click', () => exportLogs('csv'));
+  exportAllSidebarBtn.addEventListener('click', () => exportLogs('csv'));
+  sendToAuditorBtn.addEventListener('click', sendToAuditor);
+
+  function relativeTime(ts){
+    if (!ts) return '—';
+    const now = Date.now();
+    const t = typeof ts === 'number' ? ts : new Date(ts).getTime();
+    const diff = Math.max(0, Math.round((now - t)/1000));
+    if (diff < 60) return `${diff}s ago`;
+    const m = Math.round(diff/60); if (m < 60) return `${m} m ago`;
+    const h = Math.round(m/60); if (h < 24) return `${h} h ago`;
+    const d = Math.round(h/24); return `${d} d ago`;
+  }
+
+  function statusPillClass(kind, value){
+    const v = String(value || '').toLowerCase();
+    if (kind === 'db') {
+      if (v === 'online') return 'bg-green-100 text-green-700';
+      if (v === 'degraded') return 'bg-yellow-100 text-yellow-700';
+      if (v === 'offline') return 'bg-red-100 text-red-700';
+    } else if (kind === 'backup') {
+      if (v === 'current') return 'bg-green-100 text-green-700';
+      if (v === 'stale') return 'bg-yellow-100 text-yellow-700';
+      if (v === 'failed') return 'bg-red-100 text-red-700';
+    }
+    return 'bg-gray-100 text-gray-700';
+  }
+
+  async function loadHealth(){
+    try {
+      const res = await fetchData(API_ENDPOINTS.health, { raw:true });
+      if (!res.ok) throw new Error('Failed to load health');
+      const h = await res.json();
+      const db = h.databaseStatus || h.dbStatus || 'Unknown';
+      const backup = h.backupStatus || 'Unknown';
+      const last = h.lastSyncAt || h.lastSync || null;
+      dbStatusEl.textContent = typeof db === 'string' ? db.charAt(0).toUpperCase() + db.slice(1) : String(db);
+      backupStatusEl.textContent = typeof backup === 'string' ? backup.charAt(0).toUpperCase() + backup.slice(1) : String(backup);
+      dbStatusEl.className = `inline-block ${statusPillClass('db', db)} text-[10px] font-semibold rounded-full px-2 py-[2px]`;
+      backupStatusEl.className = `inline-block ${statusPillClass('backup', backup)} text-[10px] font-semibold rounded-full px-2 py-[2px]`;
+      lastSyncEl.textContent = relativeTime(last);
+    } catch(e){
+      console.error(e);
+      // Keep previous values but show toast once in a while
+    }
+  }
+
+  async function loadAll(){ await Promise.all([loadAuditLogs(), loadStats(), loadHealth()]); }
+
+  // Initial load
+  (async function init(){ await loadAll(); subscribeToAuditEvents(); })();
+
+  // Realtime updates via SSE/WebSocket
+  let auditStream = null;
+  function debounce(fn, wait){ let t; return (...args) => { clearTimeout(t); t = setTimeout(() => fn(...args), wait); }; }
+  const debouncedAuditRefresh = debounce(() => { loadAll(); }, 500);
+
+  function showToast(message, type='info'){
+    const host = document.getElementById('notification-container');
+    const div = document.createElement('div');
+    const color = type === 'error' ? 'bg-red-600' : type === 'success' ? 'bg-green-600' : 'bg-gray-800';
+    div.className = `${color} text-white text-xs rounded px-3 py-2 shadow`;
+    div.textContent = message;
+    host.appendChild(div);
+    setTimeout(() => div.remove(), 3500);
+  }
+
+  function subscribeToAuditEvents(){
+    const token = encodeURIComponent(getAuthToken());
+    // Try SSE first
+    try {
+      const sseUrl = `${API_BASE_URL}${API_ENDPOINTS.auditEvents}?token=${token}`;
+      const es = new EventSource(sseUrl);
+      es.onmessage = (ev) => {
+        try {
+          const msg = JSON.parse(ev.data || '{}');
+          if (!msg || !msg.type) return;
+          switch (msg.type) {
+            case 'logCreated':
+            case 'logUpdated':
+            case 'statsUpdated':
+            case 'healthUpdated':
+              debouncedAuditRefresh();
+              break;
+            default: break;
+          }
+        } catch(e){ console.warn('Audit SSE parse error', e); }
+      };
+      es.onerror = () => { /* may drop on idle; WS fallback below */ };
+      auditStream = es; return;
+    } catch(e){ console.warn('Audit SSE unavailable', e); }
+
+    // Fallback to WebSocket
+    try {
+      const wsUrl = `${API_BASE_URL}`.replace(/^http/, 'ws') + `${API_ENDPOINTS.auditWs}?token=${token}`;
+      const ws = new WebSocket(wsUrl);
+      ws.onmessage = (ev) => {
+        try {
+          const msg = JSON.parse(ev.data || '{}');
+          if (!msg || !msg.type) return;
+          switch (msg.type) {
+            case 'logCreated':
+            case 'logUpdated':
+            case 'statsUpdated':
+            case 'healthUpdated':
+              debouncedAuditRefresh();
+              break;
+          }
+        } catch(e){ console.warn('Audit WS parse error', e); }
+      };
+      ws.onerror = () => {};
+      auditStream = ws; return;
+    } catch(e){ console.warn('Audit WS unavailable', e); }
+  }
+
+  // Cleanup on unload
+  window.addEventListener('beforeunload', () => {
+    try { auditStream?.close?.(); auditStream?.terminate?.(); } catch {}
+    auditStream = null;
+  });
+ </script>
+ </body>
+</html>

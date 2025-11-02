@@ -1,0 +1,6 @@
+Transaction_Date,Reference,Narration,Amount,Department,Cost_Center,Transaction_Type
+2024-01-15,INT001,Payment from Client A,5000.00,Finance,CC001,income
+2024-01-16,INT002,Service Fee Expense,150.00,Finance,CC002,expense
+2024-01-17,INT003,Interest Income,25.50,Finance,CC001,income
+2024-01-18,INT004,Office Supplies,-200.00,Admin,CC003,expense
+2024-01-19,INT005,Salary Payment,-8000.00,HR,CC004,expense
