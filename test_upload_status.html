@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload Status Test</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+</head>
+<body class="bg-gray-100 p-8">
+    <div class="max-w-4xl mx-auto">
+        <h1 class="text-2xl font-bold mb-6">Upload Status Test</h1>
+        
+        <!-- Test Controls -->
+        <div class="bg-white rounded-lg p-4 mb-6">
+            <h2 class="text-lg font-semibold mb-4">Test Controls</h2>
+            <div class="space-x-4">
+                <button onclick="testBankStatus()" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+                    Test Bank Status
+                </button>
+                <button onclick="testCollectionStatus()" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">
+                    Test Collection Status
+                </button>
+                <button onclick="testErrorStatus()" class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600">
+                    Test Error Status
+                </button>
+                <button onclick="resetStatus()" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">
+                    Reset Status
+                </button>
+            </div>
+        </div>
+
+        <!-- Include the upload_enhanced.html content -->
+        <iframe src="upload_enhanced.html" width="100%" height="800" frameborder="0"></iframe>
+    </div>
+
+    <script>
+        function testBankStatus() {
+            const iframe = document.querySelector('iframe');
+            iframe.contentWindow.testStatusUpdate('bank');
+        }
+        
+        function testCollectionStatus() {
+            const iframe = document.querySelector('iframe');
+            iframe.contentWindow.testStatusUpdate('collection');
+        }
+        
+        function testErrorStatus() {
+            const iframe = document.querySelector('iframe');
+            iframe.contentWindow.updateFileStatus('bank', 'error');
+            iframe.contentWindow.updateFileStatus('collection', 'error');
+        }
+        
+        function resetStatus() {
+            const iframe = document.querySelector('iframe');
+            iframe.contentWindow.updateFileStatus('bank', 'not-uploaded');
+            iframe.contentWindow.updateFileStatus('collection', 'not-uploaded');
+            iframe.contentWindow.updateFileCounter();
+            iframe.contentWindow.updateReconciliationButton();
+        }
+    </script>
+</body>
+</html>

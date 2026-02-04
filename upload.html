@@ -1,0 +1,959 @@
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta http-equiv="refresh" content="0; url=upload_enhanced.html" />
+  <title>Upload Files (Moved)</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"
+  />
+  <style>
+    /* Custom scrollbar for the file list if needed */
+    /* Scrollbar styles can be added if the list grows */
+  </style>
+</head>
+<body class="bg-[#f8faff] font-sans text-[13px] text-[#4a4a4a]">
+  <!-- Header -->
+  <header class="bg-[#27343d] flex items-center justify-between px-6 py-3">
+   <div class="flex items-center space-x-2">
+    <img alt="GCB logo in yellow with eagle icon" class="w-8 h-8" height="32" src="images/gcblogo.png" width="32"/>
+    <h1 class="text-yellow-400 font-extrabold text-lg leading-none">
+     RECON <span class="text-white">X</span>
+    </h1>
+   </div>
+   <div class="flex items-center space-x-6">
+    <button aria-label="Send" class="text-white text-xl hover:text-yellow-400 transition">
+     <i class="fas fa-paper-plane"></i>
+    </button>
+    <button aria-label="User profile" class="bg-gray-400 bg-opacity-30 rounded-full w-8 h-8 flex items-center justify-center text-white text-sm">
+     <i class="fas fa-user"></i>
+    </button>
+   </div>
+  </header>
+  <!-- Navigation -->
+  <nav class="bg-white border-b border-gray-200 px-6" aria-label="Primary">
+   <ul class="flex space-x-6 text-sm font-semibold text-gray-700 pt-3 pb-2">
+    <li>
+     <a href="dashboard.html" class="hover:text-gray-900 inline-block focus:outline-none focus:ring-2 focus:ring-yellow-400 rounded">Dashboard</a>
+    </li>
+    <li>
+     <a href="upload.html" aria-current="page" class="text-yellow-500 border-b-2 border-yellow-400 pb-1 inline-block focus:outline-none focus:ring-2 focus:ring-yellow-400 rounded">Upload</a>
+    </li>
+    <li>
+     <a href="balancing.html" class="hover:text-gray-900 inline-block focus:outline-none focus:ring-2 focus:ring-yellow-400 rounded">Balancing</a>
+    </li>
+    <li>
+     <a href="Report.html" class="hover:text-gray-900 inline-block focus:outline-none focus:ring-2 focus:ring-yellow-400 rounded">Reports</a>
+    </li>
+    <li>
+     <a href="audit.html" class="hover:text-gray-900 inline-block focus:outline-none focus:ring-2 focus:ring-yellow-400 rounded">Audit</a>
+    </li>
+    <li>
+     <a href="users.html" class="hover:text-gray-900 inline-block focus:outline-none focus:ring-2 focus:ring-yellow-400 rounded">Users</a>
+    </li>
+    <li>
+     <a href="profile.html" class="hover:text-gray-900 inline-block focus:outline-none focus:ring-2 focus:ring-yellow-400 rounded">Profile</a>
+    </li>
+    <li>
+     <a href="mail.html" class="hover:text-gray-900 inline-block focus:outline-none focus:ring-2 focus:ring-yellow-400 rounded">Mail</a>
+    </li>
+   </ul>
+  </nav>
+  <div class="max-w-7xl mx-auto px-4 py-6">
+    <!-- Breadcrumb -->
+    <nav class="text-[11px] text-[#9ca3af] mb-4 select-none" aria-label="Breadcrumb">
+      <ol class="list-reset flex space-x-1">
+        <li>
+          <a href="dashboard.html" class="text-[#9ca3af] hover:text-[#6366f1]">Home</a>
+          <span class="mx-1 text-[#d1d5db]">›</span>
+        </li>
+        <li>
+          <a href="upload.html" class="text-[#fbbf24] font-semibold hover:text-[#fbbf24]">Upload</a>
+          <span class="mx-1 text-[#d1d5db]">›</span>
+        </li>
+        <li class="text-[#9ca3af]">File Processing</li>
+      </ol>
+    </nav>
+
+    <div class="flex flex-col lg:flex-row lg:space-x-6">
+      <main class="flex-1">
+        <h2 class="font-semibold text-[15px] text-[#1f2937] mb-1">Upload Files</h2>
+        <p class="text-[11px] text-[#6b7280] mb-4">
+          Upload your financial files for GL reconciliation processing
+        </p>
+
+        <!-- File Preview Section -->
+        <div class="bg-white rounded-lg border border-[#e5e7eb] p-4 mb-4">
+          <h3 class="font-semibold text-[13px] text-[#1f2937] mb-3 flex items-center">
+            <i class="fas fa-eye text-blue-500 mr-2"></i>
+            Selected Files
+          </h3>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <!-- Bank Statement Preview -->
+            <div id="bank-file-preview" class="hidden">
+              <div class="flex items-center space-x-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                <div class="bg-blue-100 rounded-full p-2">
+                  <i class="fas fa-file-invoice-dollar text-blue-600 text-sm"></i>
+                </div>
+                <div class="flex-1 min-w-0">
+                  <p class="text-[11px] font-medium text-blue-900 truncate" id="bank-file-name"></p>
+                  <p class="text-[10px] text-blue-700" id="bank-file-size"></p>
+                </div>
+                <button type="button" onclick="removeFile('bank')" class="text-blue-600 hover:text-blue-800">
+                  <i class="fas fa-times text-sm"></i>
+                </button>
+              </div>
+            </div>
+            
+            <!-- Collection Report Preview -->
+            <div id="collection-file-preview" class="hidden">
+              <div class="flex items-center space-x-3 p-3 bg-green-50 rounded-lg border border-green-200">
+                <div class="bg-green-100 rounded-full p-2">
+                  <i class="fas fa-file-alt text-green-600 text-sm"></i>
+                </div>
+                <div class="flex-1 min-w-0">
+                  <p class="text-[11px] font-medium text-green-900 truncate" id="collection-file-name"></p>
+                  <p class="text-[10px] text-green-700" id="collection-file-size"></p>
+                </div>
+                <button type="button" onclick="removeFile('collection')" class="text-blue-600 hover:text-blue-800">
+                  <i class="fas fa-times text-sm"></i>
+                </button>
+              </div>
+            </div>
+            
+            <!-- No Files Selected Message -->
+            <div id="no-files-message" class="col-span-2 text-center py-6 text-[11px] text-[#6b7280]">
+              <i class="fas fa-upload text-2xl mb-2 text-[#d1d5db]"></i>
+              <p>No files selected. Please choose files to upload.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- File Upload Sections -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+          <!-- Bank Statement Upload -->
+          <div class="bg-white rounded-lg border border-[#e5e7eb] p-6">
+            <h3 class="font-semibold text-[13px] text-[#1f2937] mb-3 flex items-center">
+              <i class="fas fa-university text-yellow-500 mr-2"></i>
+              Bank Statement
+            </h3>
+                      <label
+              for="bank-statement-upload"
+              id="bankDropZone"
+              class="cursor-pointer flex flex-col items-center justify-center border border-dashed border-[#d1d5db] rounded-lg h-32 text-center select-none relative hover:border-yellow-400 transition-all duration-200 ease-in-out"
+            >
+              <div class="bg-blue-100 rounded-full p-2 mb-2">
+                <i class="fas fa-file-invoice-dollar text-blue-600 text-lg"></i>
+              </div>
+              <strong class="text-[12px] text-[#374151] mb-1">Upload Bank Statement</strong>
+              <span class="text-[10px] text-[#6b7280]">CSV, XLS, XLSX • Max 50MB</span>
+              <input id="bank-statement-upload" name="file" type="file" accept=".csv,.xls,.xlsx" class="absolute inset-0 opacity-0 cursor-pointer" />
+            </label>
+            <div id="bank-file-info" class="mt-3 hidden">
+              <!-- File info will be displayed here -->
+            </div>
+            <div id="bank-upload-progress" class="mt-3 hidden">
+              <!-- Upload progress will be displayed here -->
+            </div>
+          </div>
+
+          <!-- Collection Report Upload -->
+          <div class="bg-white rounded-lg border border-[#e5e7eb] p-6">
+            <h3 class="font-semibold text-[13px] text-[#1f2937] mb-3 flex items-center">
+              <i class="fas fa-chart-line text-green-500 mr-2"></i>
+              Collection Report
+            </h3>
+            <label
+              for="collection-report-upload"
+              id="collectionDropZone"
+              class="cursor-pointer flex flex-col items-center justify-center border border-dashed border-[#d1d5db] rounded-lg h-32 text-center select-none relative hover:border-yellow-400 transition-all duration-200 ease-in-out"
+            >
+              <div class="bg-green-100 rounded-full p-2 mb-2">
+                <i class="fas fa-file-alt text-green-600 text-lg"></i>
+              </div>
+              <strong class="text-[12px] text-[#374151] mb-1">Upload Collection Report</strong>
+              <span class="text-[10px] text-[#6b7280]">CSV, XLS, XLSX • Max 50MB</span>
+              <input id="collection-report-upload" name="file" type="file" accept=".csv,.xls,.xlsx" class="absolute inset-0 opacity-0 cursor-pointer" />
+            </label>
+            <div id="collection-file-info" class="mt-3 hidden">
+              <!-- File info will be displayed here -->
+            </div>
+            <div id="collection-upload-progress" class="mt-3 hidden">
+              <!-- Upload progress will be displayed here -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Reconciliation Configuration -->
+        <div class="bg-white rounded-lg border border-[#e5e7eb] p-6 mb-6">
+          <h3 class="font-semibold text-[13px] text-[#1f2937] mb-4 flex items-center">
+            <i class="fas fa-cogs text-yellow-500 mr-2"></i>
+            Reconciliation Settings
+          </h3>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label for="tolerance" class="block text-[11px] font-semibold text-[#374151] mb-1">Tolerance (GHS)</label>
+              <select id="tolerance" class="w-full border border-[#d1d5db] rounded-md px-3 py-2 text-[12px] focus:outline-none focus:ring-2 focus:ring-yellow-400">
+                <option value="0.00">0.00 (Exact Match)</option>
+                <option value="0.01">0.01 (1 Pesewa)</option>
+                <option value="0.10">0.10 (10 Pesewas)</option>
+                <option value="1.00">1.00 (1 Cedi)</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-[11px] font-semibold text-[#374151] mb-1">Fuzzy Matching</label>
+              <div class="flex items-center space-x-4">
+                <label class="flex items-center space-x-2 text-[12px] text-[#6b7280]">
+                  <input type="checkbox" id="enable-fuzzy" class="text-yellow-400 focus:ring-yellow-400">
+                  <span>Enable fuzzy description matching</span>
+          </label>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Uploaded Files Status -->
+        <section
+          aria-label="Uploaded Files"
+          class="bg-white rounded-lg border border-[#e5e7eb] p-4 mb-6"
+        >
+          <div class="flex justify-between items-center mb-3">
+            <h3 class="font-semibold text-[12px] text-[#1f2937]">File Status</h3>
+            <span class="text-[10px] text-[#9ca3af] select-none" id="uploadedFilesCounter">0 files uploaded</span>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <!-- Bank Statement Status -->
+            <div id="bank-status" class="border border-[#e5e7eb] rounded-lg p-3">
+              <div class="flex items-center justify-between mb-2">
+                <span class="text-[11px] font-semibold text-[#374151]">Bank Statement</span>
+                <span id="bank-status-badge" class="px-2 py-1 rounded-full text-[9px] font-semibold bg-gray-100 text-gray-600">Not Uploaded</span>
+              </div>
+              <div id="bank-file-details" class="text-[10px] text-[#6b7280] hidden">
+                <!-- File details will be shown here -->
+              </div>
+                </div>
+
+            <!-- Collection Report Status -->
+            <div id="collection-status" class="border border-[#e5e7eb] rounded-lg p-3">
+              <div class="flex items-center justify-between mb-2">
+                <span class="text-[11px] font-semibold text-[#374151]">Collection Report</span>
+                <span id="collection-status-badge" class="px-2 py-1 rounded-full text-[9px] font-semibold bg-gray-100 text-gray-600">Not Uploaded</span>
+              </div>
+              <div id="collection-file-details" class="text-[10px] text-[#6b7280] hidden">
+                <!-- File details will be shown here -->
+              </div>
+                </div>
+              </div>
+        </section>
+
+        <!-- Reconciliation Progress -->
+        <section id="reconciliation-progress" class="bg-white rounded-lg border border-[#e5e7eb] p-4 mb-6 hidden">
+          <div class="flex items-center justify-between mb-3">
+            <h3 class="font-semibold text-[12px] text-[#1f2937]">Reconciliation Progress</h3>
+            <span id="progress-percentage" class="text-[10px] font-semibold text-yellow-600">0%</span>
+          </div>
+          <div class="w-full bg-gray-200 rounded-full h-2 mb-2">
+            <div id="progress-bar" class="bg-yellow-400 h-2 rounded-full transition-all duration-300" style="width: 0%"></div>
+              </div>
+          <p id="progress-status" class="text-[10px] text-[#6b7280]">Initializing reconciliation...</p>
+        </section>
+
+        <!-- Action Buttons -->
+        <div class="flex justify-end space-x-3 max-w-md mx-auto lg:mx-0">
+          <button
+            type="button"
+            class="border border-[#d1d5db] rounded px-4 py-1 text-[12px] text-[#4b5563] hover:bg-[#f3f4f6] transition"
+            id="btnCancelUploads"
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            id="startReconciliation"
+            disabled
+            class="bg-yellow-400 text-white rounded px-4 py-1 text-[12px] font-semibold flex items-center space-x-2 hover:bg-yellow-500 transition disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <span>Start Reconciliation</span>
+            <i class="fas fa-play text-[10px]"></i>
+          </button>
+        </div>
+      </main>
+
+      <!-- Sidebar -->
+      <aside class="mt-6 lg:mt-0 w-full max-w-sm space-y-6">
+        <!-- Upload Tips -->
+        <section
+          class="bg-white rounded-lg border border-[#e5e7eb] p-4 text-[11px] text-[#4a4a4a]"
+          aria-label="Upload Tips"
+        >
+          <div class="flex items-center space-x-2 mb-2">
+            <div class="bg-[#dbeafe] rounded-full p-1.5">
+              <i class="fas fa-lightbulb text-[#2563eb] text-[14px]"></i>
+            </div>
+            <h4 class="font-semibold text-[12px] text-[#1f2937] select-none">Upload Tips</h4>
+          </div>
+          <ul class="space-y-1 text-[#6b7280] list-none pl-0">
+            <li class="flex items-start space-x-2">
+              <i class="fas fa-check text-yellow-400 mt-[3px] text-[10px]"></i>
+              <p>You can upload multiple files at once for batch processing</p>
+            </li>
+            <li class="flex items-start space-x-2">
+              <i class="fas fa-check text-yellow-400 mt-[3px] text-[10px]"></i>
+              <p>Ensure file naming matches GL source system exports</p>
+            </li>
+            <li class="flex items-start space-x-2">
+              <i class="fas fa-check text-yellow-400 mt-[3px] text-[10px]"></i>
+              <p>CSV files should include headers in the first row</p>
+            </li>
+            <li class="flex items-start space-x-2">
+              <i class="fas fa-check text-yellow-400 mt-[3px] text-[10px]"></i>
+              <p>Maximum file size is 50MB per file</p>
+            </li>
+          </ul>
+        </section>
+
+        <!-- Need Help -->
+        <section
+          class="bg-white rounded-lg border border-[#e5e7eb] p-4 text-[11px] text-[#4a4a4a]"
+          aria-label="Need Help"
+        >
+          <div class="flex items-center space-x-2 mb-2">
+            <div class="bg-[#ede9fe] rounded-full p-1.5">
+              <i class="fas fa-question text-[#7c3aed] text-[14px]"></i>
+            </div>
+            <h4 class="font-semibold text-[12px] text-[#1f2937] select-none">Need Help?</h4>
+          </div>
+          <p class="text-[#6b7280] mb-3 leading-tight">
+            Having trouble with your file format or upload process?
+          </p>
+          <ul class="space-y-2 text-[#6b7280] text-[11px]">
+            <li class="flex items-center space-x-2">
+              <i class="fas fa-file-alt text-[12px]"></i>
+              <a href="#" class="hover:underline text-[#6b7280]">File Format Guide</a>
+            </li>
+            <li class="flex items-center space-x-2">
+              <i class="fas fa-video text-[12px]"></i>
+              <a href="#" class="hover:underline text-[#6b7280]">Watch Tutorial</a>
+            </li>
+            <li class="flex items-center space-x-2">
+              <i class="fas fa-headset text-[12px]"></i>
+              <a href="#" class="hover:underline text-[#6b7280]">Contact Support</a>
+            </li>
+          </ul>
+        </section>
+      </aside>
+    </div>
+  </div>
+
+  <script>
+    // API Configuration
+    const API_BASE_URL = 'http://localhost:5000/api';
+    const API_ENDPOINTS = {
+      uploadBank: '/upload/bank-statement',
+      uploadCollection: '/upload/collection-report',
+      startReconciliation: '/reconciliation/start',
+      getStatus: '/reconciliation/status',
+      getHistory: '/reconciliation/history',
+      getConfig: '/reconciliation/config'
+    };
+
+    // Global state
+    const state = {
+      bankFile: null,
+      collectionFile: null,
+      bankFileId: null,
+      collectionFileId: null,
+      currentTask: null,
+      reconciliationConfig: {
+        tolerance: 0.00,
+        enableFuzzy: false
+      }
+    };
+
+    // File validation constants
+    const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB
+    const ALLOWED_TYPES = ['csv', 'xlsx', 'xls'];
+
+    // Helper functions
+    function getAuthToken() {
+      return localStorage.getItem('authToken') || 'demo-token';
+    }
+
+    function showNotification(message, type = 'info') {
+      // Create notification element
+      const notification = document.createElement('div');
+      notification.className = `fixed top-4 right-4 z-50 px-4 py-2 rounded-lg text-white text-sm font-semibold ${
+        type === 'success' ? 'bg-green-500' :
+        type === 'error' ? 'bg-red-500' :
+        type === 'warning' ? 'bg-yellow-500' : 'bg-blue-500'
+      }`;
+      notification.textContent = message;
+      
+      document.body.appendChild(notification);
+      
+      setTimeout(() => {
+        notification.remove();
+      }, 5000);
+    }
+
+    function formatFileSize(bytes) {
+      if (bytes === 0) return '0 Bytes';
+      const k = 1024;
+      const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+      const i = Math.floor(Math.log(bytes) / Math.log(k));
+      return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    }
+
+    function validateFile(file) {
+      const errors = [];
+      
+      // Check file type
+      const fileExtension = file.name.split('.').pop().toLowerCase();
+      if (!ALLOWED_TYPES.includes(fileExtension)) {
+        errors.push(`File type .${fileExtension} is not supported. Please use CSV, XLS, or XLSX files.`);
+      }
+      
+      // Check file size
+      if (file.size > MAX_FILE_SIZE) {
+        errors.push(`File size ${formatFileSize(file.size)} exceeds the maximum limit of ${formatFileSize(MAX_FILE_SIZE)}.`);
+      }
+      
+      // Check if file is empty
+      if (file.size === 0) {
+        errors.push('File appears to be empty.');
+      }
+      
+      return errors;
+    }
+
+    function showFilePreview(file, type) {
+      const previewElement = document.getElementById(`${type}-file-preview`);
+      const nameElement = document.getElementById(`${type}-file-name`);
+      const sizeElement = document.getElementById(`${type}-file-size`);
+      
+      if (previewElement && nameElement && sizeElement) {
+        nameElement.textContent = file.name;
+        sizeElement.textContent = formatFileSize(file.size);
+        previewElement.classList.remove('hidden');
+        
+        // Hide no files message if any file is selected
+        const noFilesMessage = document.getElementById('no-files-message');
+        if (noFilesMessage) {
+          noFilesMessage.classList.add('hidden');
+        }
+      }
+    }
+
+    function hideFilePreview(type) {
+      const previewElement = document.getElementById(`${type}-file-preview`);
+      if (previewElement) {
+        previewElement.classList.add('hidden');
+      }
+      
+      // Show no files message if no files are selected
+      if (!state.bankFile && !state.collectionFile) {
+        const noFilesMessage = document.getElementById('no-files-message');
+        if (noFilesMessage) {
+          noFilesMessage.classList.remove('hidden');
+        }
+      }
+    }
+
+    function removeFile(type) {
+      if (type === 'bank') {
+        state.bankFile = null;
+        state.bankFileId = null;
+        document.getElementById('bank-statement-upload').value = '';
+        hideFilePreview('bank');
+        updateFileStatus('bank', 'not-uploaded');
+      } else if (type === 'collection') {
+        state.collectionFile = null;
+        state.collectionFileId = null;
+        document.getElementById('collection-report-upload').value = '';
+        hideFilePreview('collection');
+        updateFileStatus('collection', 'not-uploaded');
+      }
+      
+      updateFileCounter();
+      updateReconciliationButton();
+    }
+
+    function updateFileStatus(type, status, fileInfo = null) {
+      const statusElement = document.getElementById(`${type}-status-badge`);
+      const detailsElement = document.getElementById(`${type}-file-details`);
+      
+      const statusConfig = {
+        'not-uploaded': { class: 'bg-gray-100 text-gray-600', text: 'Not Uploaded' },
+        'uploading': { class: 'bg-yellow-100 text-yellow-700', text: 'Uploading...' },
+        'uploaded': { class: 'bg-green-100 text-green-700', text: 'Uploaded' },
+        'error': { class: 'bg-red-100 text-red-700', text: 'Upload Failed' }
+      };
+      
+      const config = statusConfig[status];
+      statusElement.className = `px-2 py-1 rounded-full text-[9px] font-semibold ${config.class}`;
+      statusElement.textContent = config.text;
+      
+      if (fileInfo && status === 'uploaded') {
+        detailsElement.innerHTML = `
+          <div class="space-y-1 text-[10px] text-[#6b7280]">
+            <div class="flex justify-between">
+              <span>File:</span>
+              <span class="font-medium">${fileInfo.original_filename || fileInfo.name}</span>
+            </div>
+            <div class="flex justify-between">
+              <span>Size:</span>
+              <span>${formatFileSize(fileInfo.file_size || fileInfo.size)}</span>
+            </div>
+            <div class="flex justify-between">
+              <span>Type:</span>
+              <span class="uppercase">${fileInfo.file_type || 'Unknown'}</span>
+            </div>
+            <div class="flex justify-between">
+              <span>Uploaded:</span>
+              <span>${new Date(fileInfo.uploaded_at || Date.now()).toLocaleTimeString()}</span>
+            </div>
+          </div>
+        `;
+        detailsElement.classList.remove('hidden');
+      } else {
+        detailsElement.classList.add('hidden');
+      }
+      
+      updateReconciliationButton();
+    }
+
+    function showUploadProgress(type, show) {
+      const progressElement = document.getElementById(`${type}-upload-progress`);
+      if (progressElement) {
+        if (show) {
+          progressElement.innerHTML = `
+            <div class="flex items-center space-x-2">
+              <div class="flex-1 bg-gray-200 rounded-full h-2">
+                <div class="bg-yellow-400 h-2 rounded-full animate-pulse" style="width: 100%"></div>
+              </div>
+              <span class="text-[10px] text-yellow-600 font-medium">Uploading...</span>
+            </div>
+          `;
+          progressElement.classList.remove('hidden');
+        } else {
+          progressElement.classList.add('hidden');
+        }
+      }
+    }
+
+    function updateReconciliationButton() {
+      const button = document.getElementById('startReconciliation');
+      const isReady = state.bankFileId && state.collectionFileId;
+      
+      button.disabled = !isReady;
+      if (isReady) {
+        button.classList.remove('opacity-50', 'cursor-not-allowed');
+      } else {
+        button.classList.add('opacity-50', 'cursor-not-allowed');
+      }
+    }
+
+    function updateFileCounter() {
+      const counter = document.getElementById('uploadedFilesCounter');
+      const count = (state.bankFileId ? 1 : 0) + (state.collectionFileId ? 1 : 0);
+      counter.textContent = `${count} files uploaded`;
+    }
+
+    // File upload handlers
+    async function uploadFile(file, type) {
+      try {
+        // Validate file before upload
+        const validationErrors = validateFile(file);
+        if (validationErrors.length > 0) {
+          showNotification(validationErrors.join(' '), 'error');
+          return;
+        }
+
+        // Show file preview immediately
+        showFilePreview(file, type);
+        
+        // Update status to uploading
+        updateFileStatus(type, 'uploading');
+        
+        // Show upload progress
+        showUploadProgress(type, true);
+        
+        const formData = new FormData();
+        formData.append('file', file); // key must be 'file' for backend
+        // Use correct endpoint: /api/files/upload/bank-statement or /api/files/upload/collection-report
+        const endpoint = type === 'bank' ? '/files/upload/bank-statement' : '/files/upload/collection-report';
+        const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${getAuthToken()}`
+          },
+          body: formData
+        });
+        
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          throw new Error(errorData.error || `Upload failed: ${response.statusText}`);
+        }
+        
+        const result = await response.json();
+        
+        if (result.success) {
+          if (type === 'bank') {
+            state.bankFileId = result.file_id;
+            state.bankFile = file;
+          } else {
+            state.collectionFileId = result.file_id;
+            state.collectionFile = file;
+          }
+          
+          // Update status with detailed file info from backend
+          updateFileStatus(type, 'uploaded', result);
+          
+          showNotification(`${type === 'bank' ? 'Bank Statement' : 'Collection Report'} uploaded successfully`, 'success');
+        } else {
+          throw new Error(result.error || 'Upload failed');
+        }
+        
+      } catch (error) {
+        console.error('Upload error:', error);
+        updateFileStatus(type, 'error');
+        showNotification(`Failed to upload ${type === 'bank' ? 'bank statement' : 'collection report'}: ${error.message}`, 'error');
+        
+        // Remove file preview on error
+        removeFile(type);
+      } finally {
+        // Hide upload progress
+        showUploadProgress(type, false);
+        updateFileCounter();
+      }
+    }
+
+    // File input event listeners
+    document.getElementById('bank-statement-upload').addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        // Show file preview immediately
+        showFilePreview(file, 'bank');
+        // Start upload
+        uploadFile(file, 'bank');
+      }
+    });
+
+    document.getElementById('collection-report-upload').addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        // Show file preview immediately
+        showFilePreview(file, 'collection');
+        // Start upload
+        uploadFile(file, 'collection');
+      }
+    });
+
+    // Drag and drop functionality
+    function setupDragAndDrop(dropZoneId, fileInputId, type) {
+      const dropZone = document.getElementById(dropZoneId);
+      const fileInput = document.getElementById(fileInputId);
+      
+      dropZone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        dropZone.classList.add('border-yellow-400', 'bg-yellow-50');
+        dropZone.style.transform = 'scale(1.02)';
+      });
+      
+      dropZone.addEventListener('dragleave', (e) => {
+        e.preventDefault();
+        dropZone.classList.remove('border-yellow-400', 'bg-yellow-50');
+        dropZone.style.transform = 'scale(1)';
+      });
+      
+      dropZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropZone.classList.remove('border-yellow-400', 'bg-yellow-50');
+        dropZone.style.transform = 'scale(1)';
+        const files = Array.from(e.dataTransfer.files);
+        if (files.length > 0) {
+          uploadFile(files[0], type);
+        }
+      });
+      
+      dropZone.addEventListener('click', () => {
+        fileInput.click();
+      });
+    }
+
+    setupDragAndDrop('bankDropZone', 'bank-statement-upload', 'bank');
+    setupDragAndDrop('collectionDropZone', 'collection-report-upload', 'collection');
+
+    // Configuration handlers
+    document.getElementById('tolerance').addEventListener('change', (e) => {
+      state.reconciliationConfig.tolerance = parseFloat(e.target.value);
+    });
+
+    document.getElementById('enable-fuzzy').addEventListener('change', (e) => {
+      state.reconciliationConfig.enableFuzzy = e.target.checked;
+    });
+
+    // Reconciliation process
+    async function startReconciliation() {
+      try {
+  const button = document.getElementById('startReconciliation');
+        button.disabled = true;
+        button.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Starting...';
+        
+        // Show progress section
+        document.getElementById('reconciliation-progress').classList.remove('hidden');
+        
+        const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.startReconciliation}`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${getAuthToken()}`
+          },
+          body: JSON.stringify({
+            bank_file_id: state.bankFileId,
+            collection_file_id: state.collectionFileId,
+            config: state.reconciliationConfig
+          })
+        });
+        
+        if (!response.ok) {
+          throw new Error(`Failed to start reconciliation: ${response.statusText}`);
+        }
+        
+        const result = await response.json();
+        
+        if (result.success) {
+          state.currentTask = result.task_id;
+          showNotification('Reconciliation started successfully', 'success');
+          
+          // Start polling for status
+          pollReconciliationStatus(result.task_id);
+        } else {
+          throw new Error(result.error || 'Failed to start reconciliation');
+        }
+        
+      } catch (error) {
+        console.error('Start reconciliation error:', error);
+        showNotification(`Failed to start reconciliation: ${error.message}`, 'error');
+        
+        // Reset button
+  var button = document.getElementById('startReconciliation');
+  button.disabled = false;
+  button.innerHTML = '<span>Start Reconciliation</span><i class="fas fa-play text-[10px]"></i>';
+      }
+    }
+
+    async function pollReconciliationStatus(taskId) {
+      const maxAttempts = 300; // 5 minutes with 1-second intervals
+      let attempts = 0;
+      
+      const poll = async () => {
+        try {
+          const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.getStatus}/${taskId}`, {
+            headers: {
+              'Authorization': `Bearer ${getAuthToken()}`
+            }
+          });
+          
+          if (!response.ok) {
+            throw new Error('Failed to get status');
+          }
+          
+          const status = await response.json();
+          
+          // Update progress
+          const progressBar = document.getElementById('progress-bar');
+          const progressPercentage = document.getElementById('progress-percentage');
+          const progressStatus = document.getElementById('progress-status');
+          
+          progressBar.style.width = `${status.progress}%`;
+          progressPercentage.textContent = `${status.progress}%`;
+          
+          switch (status.status) {
+            case 'pending':
+              progressStatus.textContent = 'Task queued for processing...';
+              break;
+            case 'processing':
+              progressStatus.textContent = 'Processing reconciliation...';
+              break;
+            case 'completed':
+              progressStatus.textContent = 'Reconciliation completed successfully!';
+              showNotification('Reconciliation completed successfully!', 'success');
+              
+              // Show results
+              if (status.result) {
+                showReconciliationResults(status.result);
+              }
+              
+              // Reset button
+              var button = document.getElementById('startReconciliation');
+              button.disabled = false;
+              button.innerHTML = '<span>Start New Reconciliation</span><i class="fas fa-play text-[10px]"></i>';
+              return;
+              
+            case 'failed':
+              progressStatus.textContent = `Reconciliation failed: ${status.error}`;
+              showNotification(`Reconciliation failed: ${status.error}`, 'error');
+              
+              // Reset button
+              var button = document.getElementById('startReconciliation');
+              button.disabled = false;
+              button.innerHTML = '<span>Retry Reconciliation</span><i class="fas fa-play text-[10px]"></i>';
+              return;
+          }
+          
+          attempts++;
+          if (attempts < maxAttempts) {
+            setTimeout(poll, 1000);
+          } else {
+            progressStatus.textContent = 'Reconciliation timed out';
+            showNotification('Reconciliation timed out', 'error');
+          }
+          
+        } catch (error) {
+          console.error('Status polling error:', error);
+          progressStatus.textContent = 'Failed to get status';
+          showNotification('Failed to get reconciliation status', 'error');
+        }
+      };
+      
+      poll();
+    }
+
+    function showReconciliationResults(result) {
+      // Create results modal or redirect to results page
+      const summary = result.summary;
+      
+      const resultsHtml = `
+        <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div class="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+            <div class="flex justify-between items-center mb-4">
+              <h3 class="text-lg font-semibold text-gray-900">Reconciliation Complete</h3>
+              <button onclick="this.parentElement.parentElement.parentElement.remove()" class="text-gray-400 hover:text-gray-600">
+                <i class="fas fa-times"></i>
+              </button>
+            </div>
+            
+            <div class="space-y-3 mb-6">
+              <div class="flex justify-between">
+                <span class="text-sm text-gray-600">Total Bank Records:</span>
+                <span class="font-semibold">${summary.bank_count}</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-sm text-gray-600">Total Collection Records:</span>
+                <span class="font-semibold">${summary.collection_count}</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-sm text-gray-600">Matched Records:</span>
+                <span class="font-semibold text-green-600">${summary.matched_count}</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-sm text-gray-600">Unmatched Records:</span>
+                <span class="font-semibold text-red-600">${summary.unmatched_count}</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-sm text-gray-600">Match Percentage:</span>
+                <span class="font-semibold text-blue-600">${summary.matched_percentage}%</span>
+              </div>
+            </div>
+            
+            <div class="flex space-x-3">
+              <button onclick="downloadReport('${result.output_file}')" class="flex-1 bg-yellow-400 text-white py-2 px-4 rounded font-semibold hover:bg-yellow-500">
+                <i class="fas fa-download mr-2"></i>Download Report
+              </button>
+              <button onclick="window.location.href='balancing.html'" class="flex-1 bg-gray-600 text-white py-2 px-4 rounded font-semibold hover:bg-gray-700">
+                Continue to Balancing
+              </button>
+            </div>
+          </div>
+        </div>
+      `;
+      
+      document.body.insertAdjacentHTML('beforeend', resultsHtml);
+    }
+
+    async function downloadReport(filename) {
+      try {
+        const response = await fetch(`${API_BASE_URL}/reconciliation/download/${filename}`, {
+          headers: {
+            'Authorization': `Bearer ${getAuthToken()}`
+          }
+        });
+        
+        if (!response.ok) {
+          throw new Error('Download failed');
+        }
+        
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+        
+        showNotification('Report downloaded successfully', 'success');
+        
+      } catch (error) {
+        console.error('Download error:', error);
+        showNotification('Failed to download report', 'error');
+      }
+    }
+
+    // Event listeners
+    document.getElementById('startReconciliation').addEventListener('click', startReconciliation);
+
+    document.getElementById('btnCancelUploads').addEventListener('click', () => {
+      // Reset state
+      state.bankFile = null;
+      state.collectionFile = null;
+      state.bankFileId = null;
+      state.collectionFileId = null;
+      state.currentTask = null;
+      
+      // Reset UI
+      updateFileStatus('bank', 'not-uploaded');
+      updateFileStatus('collection', 'not-uploaded');
+      document.getElementById('reconciliation-progress').classList.add('hidden');
+      
+      // Reset file inputs
+      document.getElementById('bank-statement-upload').value = '';
+      document.getElementById('collection-report-upload').value = '';
+      
+      // Hide file previews
+      hideFilePreview('bank');
+      hideFilePreview('collection');
+      
+      // Hide upload progress
+      showUploadProgress('bank', false);
+      showUploadProgress('collection', false);
+      
+      // Show no files message
+      const noFilesMessage = document.getElementById('no-files-message');
+      if (noFilesMessage) {
+        noFilesMessage.classList.remove('hidden');
+      }
+      
+      updateFileCounter();
+      updateReconciliationButton();
+      
+      showNotification('Upload cancelled', 'info');
+    });
+
+    // Initialize
+    updateFileCounter();
+    updateReconciliationButton();
+    
+    // Show no files message initially
+    const noFilesMessage = document.getElementById('no-files-message');
+    if (noFilesMessage) {
+      noFilesMessage.classList.remove('hidden');
+    }
+  </script>
+</body>
+</html>

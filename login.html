@@ -1,0 +1,186 @@
+
+        const API_BASE_URL = 'http://localhost:5000/api';
+        const SIMPLE_API_URL = 'http://localhost:5001/api';
+        
+        let statusUpdateInterval = null;
+        
+        // Helper functions
+        function log(message, type = 'info') {
+            const logElement = document.getElementById('status-log');
+            const timestamp = new Date().toLocaleTimeString();
+            const color = type === 'error' ? 'text-red-600' : type === 'success' ? 'text-green-600' : 'text-blue-600';
+            logElement.innerHTML += `<p class="${color}">[${timestamp}] ${message}</p>`;
+            logElement.scrollTop = logElement.scrollHeight;
+        }
+        
+        function clearLog() {
+            document.getElementById('status-log').innerHTML = '<p class="text-gray-500">Status updates will appear here...</p>';
+        }
+        
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+        
+        function updateFileStatusDisplay(type, status, fileInfo = null) {
+            const statusElement = document.getElementById(`${type}-status-badge`);
+            const detailsElement = document.getElementById(`${type}-file-details`);
+            
+            if (!statusElement) return;
+            
+            const statusConfig = {
+                'not_uploaded': { class: 'bg-gray-100 text-gray-600', text: 'Not Uploaded' },
+                'uploading': { class: 'bg-yellow-100 text-yellow-700', text: 'Uploading...' },
+                'uploaded': { class: 'bg-blue-100 text-blue-700', text: 'Uploaded' },
+                'processing': { class: 'bg-yellow-100 text-yellow-700', text: 'Processing...' },
+                'processed': { class: 'bg-green-100 text-green-700', text: 'Processed' },
+                'error': { class: 'bg-red-100 text-red-700', text: 'Upload Failed' }
+            };
+            
+            const config = statusConfig[status] || statusConfig['not_uploaded'];
+            statusElement.className = `px-2 py-1 rounded-full text-sm ${config.class}`;
+            statusElement.textContent = config.text;
+            
+            if (fileInfo && detailsElement && (status === 'uploaded' || status === 'processed')) {
+                detailsElement.innerHTML = `
+                    <div class="space-y-1">
+                        <div class="flex justify-between">
+                            <span>File:</span>
+                            <span class="font-medium">${fileInfo.original_filename || fileInfo.filename || fileInfo.name}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span>Records:</span>
+                            <span>${fileInfo.records_count || 0}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span>Uploaded:</span>
+                            <span>${new Date(fileInfo.uploaded_at || Date.now()).toLocaleTimeString()}</span>
+                        </div>
+                    </div>
+                `;
+                detailsElement.classList.remove('hidden');
+            } else if (detailsElement) {
+                detailsElement.classList.add('hidden');
+            }
+        }
+        
+        // File upload function
+        async function uploadFile(type) {
+            const fileInput = document.getElementById(`${type}-file`);
+            const file = fileInput.files[0];
+            
+            if (!file) {
+                log(`Please select a ${type} file first`, 'error');
+                return;
+            }
+            
+            try {
+                log(`Starting upload of ${file.name}...`, 'info');
+                updateFileStatusDisplay(type, 'uploading');
+                
+                const formData = new FormData();
+                formData.append('file', file);
+                
+                const endpoint = type === 'bank' ? '/files/upload/bank-statement' : '/files/upload/internal-record';
+                const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': 'Bearer demo-token'
+                    },
+                    body: formData
+                });
+                
+                if (!response.ok) {
+                    const errorData = await response.json().catch(() => ({}));
+                    throw new Error(errorData.error || `Upload failed: ${response.statusText}`);
+                }
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    log(`${type} file uploaded successfully!`, 'success');
+                    updateFileStatusDisplay(type, 'uploaded', result);
+                    
+                    // Trigger status refresh
+                    setTimeout(fetchFileStatus, 1000);
+                } else {
+                    throw new Error(result.error || 'Upload failed');
+                }
+                
+            } catch (error) {
+                log(`Upload failed: ${error.message}`, 'error');
+                updateFileStatusDisplay(type, 'error');
+            }
+        }
+        
+        // Fetch file status
+        async function fetchFileStatus() {
+            try {
+                log('Fetching file status...', 'info');
+                
+                const response = await fetch(`${API_BASE_URL}/files/status/summary`, {
+                    headers: {
+                        'Authorization': 'Bearer demo-token'
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Failed to fetch file status');
+                }
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    log('File status updated successfully', 'success');
+                    
+                    // Update bank statement status
+                    if (data.bank_statement.status !== 'not_uploaded') {
+                        updateFileStatusDisplay('bank', data.bank_statement.status, data.bank_statement);
+                    }
+                    
+                    // Update collection report status
+                    if (data.internal_record.status !== 'not_uploaded') {
+                        updateFileStatusDisplay('collection', data.internal_record.status, data.internal_record);
+                    }
+                    
+                    log(`Summary: ${data.summary.total_files} files, ${data.summary.processed_files} processed`);
+                }
+            } catch (error) {
+                log(`Error fetching file status: ${error.message}`, 'error');
+            }
+        }
+        
+        // Start status updates
+        function startStatusUpdates() {
+            if (statusUpdateInterval) {
+                log('Status updates already running', 'info');
+                return;
+            }
+            
+            log('Starting status updates...', 'info');
+            fetchFileStatus(); // Initial fetch
+            statusUpdateInterval = setInterval(fetchFileStatus, 3000);
+            log('Status updates started (every 3 seconds)', 'success');
+        }
+        
+        // Stop status updates
+        function stopStatusUpdates() {
+            if (statusUpdateInterval) {
+                clearInterval(statusUpdateInterval);
+                statusUpdateInterval = null;
+                log('Status updates stopped', 'info');
+            } else {
+                log('Status updates not running', 'info');
+            }
+        }
+        
+        // Initialize
+        log('ReconX Upload Integration Test initialized', 'success');
+        log('Click "Start Status Updates" to begin monitoring file status', 'info');
+    </script>
+</body>
+</html>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    
