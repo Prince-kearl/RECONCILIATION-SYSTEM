@@ -172,9 +172,15 @@ import os
 import uuid
 from typing import Tuple
 
-DATA_DIR = os.getenv('RECONX_DATA_DIR', '/data/reconx')
+# Use relative path by default, or allow override via environment variable
+DATA_DIR = os.getenv('RECONX_DATA_DIR', os.path.join(os.path.dirname(os.path.abspath(__file__)), 'outputs'))
 if not os.path.exists(DATA_DIR):
-    os.makedirs(DATA_DIR, exist_ok=True)
+    try:
+        os.makedirs(DATA_DIR, exist_ok=True)
+    except (OSError, PermissionError) as e:
+        # Fallback to current directory if we can't create the default
+        DATA_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'outputs')
+        os.makedirs(DATA_DIR, exist_ok=True)
 
 
 def save_report(matched_df: pd.DataFrame, unmatched_df: pd.DataFrame, summary: dict, run_id: str = None) -> str:
@@ -204,12 +210,23 @@ app = Flask(__name__)
 logging.basicConfig(level=logging.INFO)
 
 # Configuration - adjust as needed in your environment
-UPLOAD_DIR = os.getenv('RECONX_UPLOAD_DIR', '/data/reconx/uploads')
-OUTPUT_DIR = os.getenv('RECONX_OUTPUT_DIR', '/data/reconx')
+# Use relative paths by default
+_base_dir = os.path.dirname(os.path.abspath(__file__))
+UPLOAD_DIR = os.getenv('RECONX_UPLOAD_DIR', os.path.join(_base_dir, 'uploads'))
+OUTPUT_DIR = os.getenv('RECONX_OUTPUT_DIR', os.path.join(_base_dir, 'outputs'))
 ALLOWED_EXTENSIONS = {'csv', 'xls', 'xlsx'}
 
-os.makedirs(UPLOAD_DIR, exist_ok=True)
-os.makedirs(OUTPUT_DIR, exist_ok=True)
+# Create directories if they don't exist
+try:
+    os.makedirs(UPLOAD_DIR, exist_ok=True)
+    os.makedirs(OUTPUT_DIR, exist_ok=True)
+except (OSError, PermissionError) as e:
+    # Fallback to api directory if we can't create the default
+    _api_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'api')
+    UPLOAD_DIR = os.path.join(_api_dir, 'uploads')
+    OUTPUT_DIR = os.path.join(_api_dir, 'outputs')
+    os.makedirs(UPLOAD_DIR, exist_ok=True)
+    os.makedirs(OUTPUT_DIR, exist_ok=True)
 
 # Optional external imports; fall back to local definitions above when unavailable
 try:
