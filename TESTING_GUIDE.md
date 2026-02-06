@@ -11,7 +11,7 @@
 
 ```bash
 cd /Users/tavido/Desktop/dev+/reconx/api
-python run_server.py
+python3 run_server.py
 ```
 
 The server should start on `http://localhost:5000`

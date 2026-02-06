@@ -28,7 +28,7 @@ A comprehensive test suite has been created to test all APIs, endpoints, workflo
 ```bash
 # Terminal 1: Start the server
 cd /Users/tavido/Desktop/dev+/reconx/api
-python run_server.py
+python3 run_server.py
 
 # Terminal 2: Run tests
 cd /Users/tavido/Desktop/dev+/reconx
@@ -181,7 +181,7 @@ pip install -r api/requirements.txt
 pip install requests
 
 # Start server in background
-cd api && python run_server.py &
+cd api && python3 run_server.py &
 SERVER_PID=$!
 sleep 5
 
