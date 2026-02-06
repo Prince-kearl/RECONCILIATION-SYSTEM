@@ -18,16 +18,44 @@ sys.path.insert(0, parent_dir)
 if __name__ == '__main__':
     try:
         from app import app
+        import socket
+        
+        # Get port from environment or use default (5001 to avoid AirPlay conflict)
+        port = int(os.getenv('FLASK_PORT', 5001))
+        
+        # Try to find an available port if the default is in use
+        def find_free_port(start_port):
+            for port in range(start_port, start_port + 10):
+                try:
+                    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+                        s.bind(('', port))
+                        return port
+                except OSError:
+                    continue
+            return None
+        
+        # Check if port is available, if not find a free one
+        try:
+            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+                s.bind(('', port))
+        except OSError:
+            print(f"⚠️  Port {port} is in use. Finding available port...")
+            port = find_free_port(5001)
+            if not port:
+                print("❌ Could not find an available port")
+                sys.exit(1)
+            print(f"✅ Using port {port} instead")
+        
         print("🚀 Starting ReconX Backend Server...")
-        print("📡 API will be available at: http://localhost:5000")
-        print("🔍 Health check: http://localhost:5000/api/health")
+        print(f"📡 API will be available at: http://localhost:{port}")
+        print(f"🔍 Health check: http://localhost:{port}/api/health")
         print("📚 API documentation: See README.md for endpoint details")
         print("=" * 60)
         
         # Run the Flask app
         app.run(
             host='0.0.0.0',
-            port=5000,
+            port=port,
             debug=True,
             use_reloader=True
         )

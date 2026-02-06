@@ -19,7 +19,10 @@ except ImportError:
     PANDAS_AVAILABLE = False
     print("⚠️  Warning: pandas not available. Some file creation tests will be skipped.")
 
-BASE_URL = "http://localhost:5000/api"
+# Get port from environment or use default (5001 to avoid AirPlay conflict)
+import os
+PORT = int(os.getenv('RECONX_API_PORT', 5001))
+BASE_URL = f"http://localhost:{PORT}/api"
 TEST_RESULTS = {
     'passed': [],
     'failed': [],
@@ -658,7 +661,7 @@ def run_all_tests():
     # Check if server is running
     if not test_health_check():
         print("\n❌ Server is not running. Please start the server first:")
-        print("   cd api && python app.py")
+        print("   cd api && python3 run_server.py")
         return
     
     print("\n" + "=" * 70)
