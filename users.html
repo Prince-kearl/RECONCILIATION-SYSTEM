@@ -1036,5 +1036,48 @@
       });
     });
   </script>
+
+    <!-- Footer -->
+    <footer class="bg-[#27343d] border-t mt-8">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+            <div class="flex justify-between items-center text-sm text-gray-300">
+                <div class="text-white font-medium">
+                    GCB BANK PLC - GL BALANCING & RECONCILIATION
+                </div>
+                <div class="flex items-center space-x-4 text-white">
+                    <span class="font-medium">VERSION 1.0</span>
+                    <span class="flex items-center space-x-2">
+                        <span class="w-2 h-2 bg-green-500 rounded-full"></span>
+                        <span class="font-medium">SYSTEM STATUS:</span>
+                        <span id="systemStatusIndicator" class="font-bold text-green-400">ONLINE</span>
+                    </span>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // System Status Indicator - Dynamic coloring
+        document.addEventListener('DOMContentLoaded', function() {
+            const statusIndicator = document.getElementById('systemStatusIndicator');
+            const currentStatus = statusIndicator.textContent.trim();
+            
+            if (currentStatus === 'ONLINE') {
+                statusIndicator.className = 'font-bold text-green-400';
+            } else if (currentStatus === 'OFFLINE') {
+                statusIndicator.className = 'font-bold text-red-500';
+            }
+
+            window.updateSystemStatus = function(newStatus) {
+                const status = newStatus.toUpperCase();
+                statusIndicator.textContent = status;
+                if (status === 'ONLINE') {
+                    statusIndicator.className = 'font-bold text-green-400';
+                } else if (status === 'OFFLINE') {
+                    statusIndicator.className = 'font-bold text-red-500';
+                }
+            };
+        });
+    </script>
 </body>
 </html>
