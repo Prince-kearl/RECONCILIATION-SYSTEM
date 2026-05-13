@@ -1,77 +1,712 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>ReconX — Reports Dashboard</title>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ReconX - Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet" />
-    <style>body{font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial}</style>
-  </head>
-  <body class="bg-[#F9FAFB] text-gray-900 min-h-screen">
-    <header class="bg-[#27343d] flex items-center justify-between px-6 py-3">
-      <div class="flex items-center space-x-2">
-        <img src="images/gcblogo.png" alt="logo" class="w-8 h-8"/>
-        <h1 class="text-yellow-400 font-extrabold text-lg">RECON <span class="text-white">X</span></h1>
-      </div>
-      <nav class="flex items-center space-x-4">
-        <a href="dashboard.html" class="text-sm text-white">Dashboard</a>
-        <a href="upload_enhanced.html" class="text-sm text-white/90 hover:text-yellow-300">Upload</a>
-        <a href="Report.html" class="text-sm text-white/90 hover:text-yellow-300">Reports</a>
-        <a href="audit.html" class="text-sm text-white/90 hover:text-yellow-300">Audit</a>
-        <a href="users.html" class="text-sm text-white/90 hover:text-yellow-300">Users</a>
-      </nav>
-    </header>
-
-    <main class="max-w-6xl mx-auto p-6">
-      <section class="bg-white p-6 rounded-lg shadow-sm border">
-        <div class="flex items-center justify-between mb-4">
-          <h2 class="text-lg font-semibold">Reports Dashboard</h2>
-          <div class="text-sm text-gray-500">System status: <span id="system-status">loading...</span></div>
-        </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div class="p-4 border rounded">
-            <h3 class="font-semibold">Latest Reconciliation</h3>
-            <p id="latest-run" class="text-sm text-gray-600 mt-2">No runs yet.</p>
-          </div>
-          <div class="p-4 border rounded">
-            <h3 class="font-semibold">Uploaded Files</h3>
-            <p id="upload-count" class="text-sm text-gray-600 mt-2">0 uploaded</p>
-          </div>
-          <div class="p-4 border rounded">
-            <h3 class="font-semibold">Match Rate</h3>
-            <p id="match-rate" class="text-sm text-gray-600 mt-2">—</p>
-          </div>
-        </div>
-
-        <div class="mt-6">
-          <button id="refreshBtn" class="px-4 py-2 bg-yellow-400 text-white rounded hover:bg-yellow-500">Refresh</button>
-        </div>
-      </section>
-
-      <section class="bg-white p-6 rounded-lg shadow-sm border mt-6">
-        <h3 class="font-semibold mb-3">Recent Runs</h3>
-        <div id="runsTable" class="text-sm text-gray-700">No runs to display.</div>
-      </section>
-    </main>
-
-    <script>
-      async function fetchHealth(){
-        try{
-          const res = await fetch('/api/health');
-          if(!res.ok) throw new Error('no status');
-          const j = await res.json();
-          document.getElementById('system-status').textContent = j.status || 'ok';
-          document.getElementById('upload-count').textContent = (j.active_tasks!==undefined)? j.active_tasks + ' active tasks' : '—';
-        }catch(e){
-          document.getElementById('system-status').textContent = 'unavailable';
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
         }
-      }
-      document.getElementById('refreshBtn').addEventListener('click', fetchHealth);
-      fetchHealth();
-    </script>
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+            /* ensure datepicker sits above other elements */
+            .flatpickr-calendar{z-index:99999}
+    </style>
+        <!-- Flatpickr date picker -->
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+        <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+</head>
+<body class="bg-gray-50">
+    <!-- Header -->
+    <header class="bg-[#27343d] flex items-center justify-between px-6 py-3">
+     <div class="flex items-center space-x-2">
+      <img alt="GCB logo in yellow with eagle icon" class="w-8 h-8" height="32" src="images/gcblogo.png" width="32"/>
+      <h1 class="text-yellow-400 font-extrabold text-lg leading-none">RECON <span class="text-white">X</span></h1>
+     </div>
+     <div class="flex items-center space-x-6">
+      <button aria-label="Send" class="text-white text-xl hover:text-yellow-400 transition">
+       <i class="fas fa-paper-plane"></i>
+      </button>
+      <button aria-label="User profile" class="bg-gray-400 bg-opacity-30 rounded-full w-8 h-8 flex items-center justify-center text-white text-sm">
+       <i class="fas fa-user"></i>
+      </button>
+     </div>
+    </header>
+    <!-- Navigation -->
+    <nav class="bg-white border-b border-gray-200 px-6" aria-label="Primary">
+     <ul class="flex space-x-6 text-sm font-semibold text-gray-700 pt-3 pb-2">
+      <li>
+       <a href="dashboard.html" aria-current="page" class="text-yellow-500 border-b-2 border-yellow-400 pb-1 inline-block focus:outline-none focus:ring-2 focus:ring-yellow-400 rounded">Dashboard</a>
+      </li>
+      <li>
+       <a href="upload_enhanced.html" class="hover:text-gray-900 inline-block focus:outline-none focus:ring-2 focus:ring-yellow-400 rounded">Upload</a>
+      </li>
+      <li>
+       <a href="balancing.html" class="hover:text-gray-900 inline-block focus:outline-none focus:ring-2 focus:ring-yellow-400 rounded">Balancing</a>
+      </li>
+      <li>
+       <a href="Report.html" class="hover:text-gray-900 inline-block focus:outline-none focus:ring-2 focus:ring-yellow-400 rounded">Reports</a>
+      </li>
+      <li>
+       <a href="audit.html" class="hover:text-gray-900 inline-block focus:outline-none focus:ring-2 focus:ring-yellow-400 rounded">Audit</a>
+      </li>
+      <li>
+       <a href="users.html" class="hover:text-gray-900 inline-block focus:outline-none focus:ring-2 focus:ring-yellow-400 rounded">Users</a>
+      </li>
+      <li>
+       <a href="profile.html" class="hover:text-gray-900 inline-block focus:outline-none focus:ring-2 focus:ring-yellow-400 rounded">Profile</a>
+      </li>
+      <li>
+       <a href="mail.html" class="hover:text-gray-900 inline-block focus:outline-none focus:ring-2 focus:ring-yellow-400 rounded">Mail</a>
+      </li>
+     </ul>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Filters Section (styled to match reference) -->
+        <div class="bg-white rounded-xl shadow-sm p-6 mb-6">
+            <form class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-6 gap-4 items-end">
+                <div class="col-span-1">
+                    <label class="block text-xs font-medium text-gray-600 mb-2">All Branches</label>
+                    <div class="relative">
+                        <select class="h-10 w-full border border-gray-200 rounded-md px-3 pr-10 appearance-none text-sm bg-white focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400">
+                            <option>All Branches</option>
+                            <option>Circle</option>
+                            <option>Tema</option>
+                            <option>Nima</option>
+                            <option>Achimota</option>
+                            <option>Lapaz</option>
+                        </select>
+                        <span class="pointer-events-none absolute inset-y-0 right-2 flex items-center text-gray-400"><i class="fas fa-chevron-down text-sm"></i></span>
+                    </div>
+                </div>
+
+                <div class="col-span-1">
+                    <label class="block text-xs font-medium text-gray-600 mb-2">All GL Types</label>
+                    <div class="relative">
+                        <select class="h-10 w-full border border-gray-200 rounded-md px-3 pr-10 appearance-none text-sm bg-white focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400">
+                            <option>All GL Types</option>
+                            <option>EAGLEPAY</option>
+                            <option>TRANSFLOW</option>
+                            <option>PAYMENT</option>
+                        </select>
+                        <span class="pointer-events-none absolute inset-y-0 right-2 flex items-center text-gray-400"><i class="fas fa-chevron-down text-sm"></i></span>
+                    </div>
+                </div>
+
+
+                    <div class="relative">
+                        <label class="block text-xs font-medium text-gray-600 mb-2">From</label>
+                        <div class="relative">
+                            <input id="fromDate" name="fromDate" type="text" placeholder="mm/dd/yyyy" class="js-flatpickr h-10 w-full border border-gray-200 rounded-md px-3 pr-10 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400" readonly />
+                            <button type="button" data-target="fromDate" class="absolute inset-y-0 right-2 flex items-center text-gray-400 js-date-icon" aria-label="Open calendar">
+                                <i class="fas fa-calendar-alt"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="relative">
+                        <label class="block text-xs font-medium text-gray-600 mb-2">To</label>
+                        <div class="relative">
+                            <input id="toDate" name="toDate" type="text" placeholder="mm/dd/yyyy" class="js-flatpickr h-10 w-full border border-gray-200 rounded-md px-3 pr-10 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400" readonly />
+                            <button type="button" data-target="toDate" class="absolute inset-y-0 right-2 flex items-center text-gray-400 js-date-icon" aria-label="Open calendar">
+                                <i class="fas fa-calendar-alt"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                <div>
+                    <label class="block text-xs font-medium text-gray-600 mb-2">All Status</label>
+                    <div class="relative">
+                        <select class="h-10 w-full border border-gray-200 rounded-md px-3 pr-10 appearance-none text-sm bg-white focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400">
+                            <option>All Status</option>
+                            <option>Matched</option>
+                            <option>Unmatched</option>
+                            <option>Pending</option>
+                        </select>
+                        <span class="pointer-events-none absolute inset-y-0 right-2 flex items-center text-gray-400"><i class="fas fa-chevron-down text-sm"></i></span>
+                    </div>
+                </div>
+
+                <div class="md:col-span-1">
+                    <button type="submit" class="h-10 w-full bg-yellow-400 hover:bg-yellow-500 text-gray-900 text-sm font-semibold rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-400">Apply Filters</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- KPI Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+            <!-- Total Abs. Imbalance (Blue) -->
+            <div class="bg-white rounded-xl shadow-sm p-4 h-28 flex items-center justify-between hover:shadow-md transition-shadow duration-150">
+                <div class="flex-1 pr-4 flex flex-col">
+                    <h3 class="text-sm text-gray-500">Total Abs. Imbalance</h3>
+                    <p class="text-3xl font-bold text-blue-600 mt-1">2,847</p>
+                    <p class="text-sm text-blue-500 mt-2">+12% from yesterday</p>
+                </div>
+                <div class="flex-shrink-0">
+                    <div class="w-12 h-12 rounded-full bg-blue-50 flex items-center justify-center">
+                        <i class="fas fa-balance-scale text-blue-600"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Balanced Count (Green) -->
+            <div class="bg-white rounded-xl shadow-sm p-4 h-28 flex items-center justify-between hover:shadow-md transition-shadow duration-150">
+                <div class="flex-1 pr-4 flex flex-col">
+                    <h3 class="text-sm text-gray-500">Balanced Count</h3>
+                    <p class="text-3xl font-bold text-green-600 mt-1">2,654</p>
+                    <p class="text-sm text-green-500 mt-2">93.2% success rate</p>
+                </div>
+                <div class="flex-shrink-0">
+                    <div class="w-12 h-12 rounded-full bg-green-50 flex items-center justify-center">
+                        <i class="fas fa-check text-green-600"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Imbalances Count (Red) -->
+            <div class="bg-white rounded-xl shadow-sm p-4 h-28 flex items-center justify-between hover:shadow-md transition-shadow duration-150">
+                <div class="flex-1 pr-4 flex flex-col">
+                    <h3 class="text-sm text-gray-500">Imbalances Count</h3>
+                    <p class="text-3xl font-bold text-red-600 mt-1">148</p>
+                    <p class="text-sm text-red-500 mt-2">Requires attention</p>
+                </div>
+                <div class="flex-shrink-0">
+                    <div class="w-12 h-12 rounded-full bg-red-50 flex items-center justify-center">
+                        <i class="fas fa-exclamation-triangle text-red-600"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Proxy Credits (Yellow) -->
+            <div class="bg-white rounded-xl shadow-sm p-4 h-28 flex items-center justify-between hover:shadow-md transition-shadow duration-150">
+                <div class="flex-1 pr-4 flex flex-col">
+                    <h3 class="text-sm text-gray-500">Proxy Credits</h3>
+                    <p class="text-3xl font-bold text-yellow-600 mt-1">45</p>
+                    <p class="text-sm text-yellow-600 mt-2">Manual review needed</p>
+                </div>
+                <div class="flex-shrink-0">
+                    <div class="w-12 h-12 rounded-full bg-yellow-50 flex items-center justify-center">
+                        <i class="fas fa-coins text-yellow-600"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts Row -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+            <!-- Imbalances Trend Chart -->
+            <div class="lg:col-span-2 bg-white rounded-2xl shadow-sm p-6 mb-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-xl font-semibold text-gray-800">Imbalances Trend</h3>
+                        <div class="flex items-center space-x-2">
+                            <button class="range-btn px-4 py-1.5 rounded-md text-gray-700 bg-gray-50 border border-gray-200 text-sm" data-range="day">Day</button>
+                            <button class="range-btn px-4 py-1.5 rounded-md text-white bg-gray-900 text-sm shadow-sm" data-range="week">Week</button>
+                            <button class="range-btn px-4 py-1.5 rounded-md text-gray-700 bg-gray-50 border border-gray-200 text-sm" data-range="month">Month</button>
+                        </div>
+                </div>
+
+                    <div id="weekControls" class="flex items-center space-x-3 text-sm text-gray-600 mb-3">
+                        <button id="prevWeekBtn" class="px-2 py-1 rounded-md hover:bg-gray-100">&#x25C0;</button>
+                        <div id="weekLabel">Week of</div>
+                        <button id="nextWeekBtn" class="px-2 py-1 rounded-md hover:bg-gray-100">&#x25B6;</button>
+                    </div>
+
+                    <div class="h-64">
+                    <canvas id="imbalancesTrendChart" class="w-full h-full"></canvas>
+                </div>
+            </div>
+
+            <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+            <script>
+                (function(){
+                    // Helper: last N month labels (e.g., "Sep", "Oct", ...)
+                    function lastNMonths(n) {
+                        const names = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+                        const d = new Date();
+                        const res = [];
+                        for(let i = n-1; i >= 0; i--) {
+                            const dt = new Date(d.getFullYear(), d.getMonth() - i, 1);
+                            res.push(names[dt.getMonth()]);
+                        }
+                        return res;
+                    }
+
+                    // Example sample data generators (replace with real aggregations as needed)
+                    const sample = {
+                        day: [40,38,45,41,47,35,42],
+                        week: [44,37,53,41,48,34,42],
+                        // provide a rolling 12-month sample set
+                        month: [320,290,340,310,360,300,330,350,310,340,320,360]
+                    };
+
+                    const ctx = document.getElementById('imbalancesTrendChart').getContext('2d');
+                    const red = '#e53935';
+
+                    const chart = new Chart(ctx, {
+                        type: 'line',
+                        data: {
+                            labels: ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'],
+                            datasets: [{
+                                data: sample['week'],
+                                borderColor: red,
+                                borderWidth: 3,
+                                tension: 0.4,
+                                pointRadius: 7,
+                                pointBackgroundColor: red,
+                                pointHoverRadius: 7,
+                                fill: false,
+                                segment: { borderJoinStyle: 'round' }
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            animation: { duration: 450, easing: 'easeInOutCubic' },
+                            plugins: {
+                                legend: { display: false },
+                                tooltip: {
+                                    enabled: true,
+                                    callbacks: {
+                                        label: function(context){
+                                            const v = context.parsed.y;
+                                            return 'Imbalances: ' + v;
+                                        }
+                                    }
+                                }
+                            },
+                            scales: {
+                                x: {
+                                    grid: { display: false },
+                                    ticks: { color: '#6b7280' }
+                                },
+                                y: {
+                                    beginAtZero: false,
+                                    grid: { color: '#f3f4f6', drawBorder: false },
+                                    ticks: { color: '#9ca3af' },
+                                    title: { display: true, text: 'COUNT', color: '#6b7280', padding: {top:0, bottom:10} }
+                                }
+                            },
+                            elements: {
+                                line: { borderJoinStyle: 'round' }
+                            }
+                        }
+                    });
+
+                    // State: current range and current week start date
+                    let currentRange = 'week';
+                    const msPerDay = 24 * 60 * 60 * 1000;
+
+                    function startOfWeek(d){
+                        const date = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+                        // ISO week starting Monday
+                        const day = date.getDay(); // 0 (Sun) - 6 (Sat)
+                        const diff = (day + 6) % 7; // days since Monday
+                        date.setDate(date.getDate() - diff);
+                        date.setHours(0,0,0,0);
+                        return date;
+                    }
+
+                    function formatShort(d){
+                        const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+                        return `${months[d.getMonth()]} ${d.getDate()}`;
+                    }
+
+                    function weekLabelFor(start){
+                        const end = new Date(start.getTime());
+                        end.setDate(start.getDate() + 6);
+                        return `Week of ${formatShort(start)} \u2013 ${formatShort(end)}, ${end.getFullYear()}`;
+                    }
+
+                    // Create week data based on base sample.week but shifted by week offset so prev/next look distinct
+                    function weekDataFor(start){
+                        const base = sample.week.slice();
+                        const nowStart = startOfWeek(new Date());
+                        const weeksDiff = Math.round((start - nowStart) / (7 * msPerDay));
+                        const shift = ((weeksDiff % base.length) + base.length) % base.length;
+                        const data = base.map((v,i)=> base[(i + shift) % base.length] + (shift * 2));
+                        return data;
+                    }
+
+                    // Week controls
+                    const weekControls = document.getElementById('weekControls');
+                    const weekLabelEl = document.getElementById('weekLabel');
+                    const prevWeekBtn = document.getElementById('prevWeekBtn');
+                    const nextWeekBtn = document.getElementById('nextWeekBtn');
+                    let currentWeekStart = startOfWeek(new Date());
+
+                    function updateWeekLabel(){
+                        weekLabelEl.textContent = weekLabelFor(currentWeekStart);
+                    }
+
+                    prevWeekBtn.addEventListener('click', function(){
+                        currentWeekStart.setDate(currentWeekStart.getDate() - 7);
+                        updateWeekLabel();
+                        if(currentRange === 'week'){
+                            const data = weekDataFor(currentWeekStart);
+                            updateChart({labels: ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'], data});
+                        }
+                    });
+
+                    nextWeekBtn.addEventListener('click', function(){
+                        currentWeekStart.setDate(currentWeekStart.getDate() + 7);
+                        updateWeekLabel();
+                        if(currentRange === 'week'){
+                            const data = weekDataFor(currentWeekStart);
+                            updateChart({labels: ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'], data});
+                        }
+                    });
+
+                    // initialize week label and visibility
+                    updateWeekLabel();
+                    // show week controls if initial range is week
+                    if(currentRange === 'week') weekControls.style.display = 'flex'; else weekControls.style.display = 'none';
+
+                    // initialize chart to current week data if starting in week mode
+                    if(currentRange === 'week'){
+                        const initData = weekDataFor(currentWeekStart);
+                        chart.data.labels = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+                        chart.data.datasets[0].data = initData;
+                        chart.update(0);
+                    }
+
+                    // Utility to update chart with new labels and data and smoothly rescale Y-axis
+                    function updateChart({labels, data}){
+                        // set new labels and data
+                        chart.data.labels = labels;
+                        chart.data.datasets[0].data = data;
+
+                        // clear any manual min/max so Chart.js auto-scales
+                        if(chart.options.scales && chart.options.scales.y){
+                            chart.options.scales.y.min = undefined;
+                            chart.options.scales.y.max = undefined;
+                        }
+
+                        // animate update for smooth transition
+                        chart.update({duration: 450, easing: 'easeInOutCubic'});
+                    }
+
+                    // Segmented control behavior with data/label switching
+                    document.querySelectorAll('.range-btn').forEach(btn => {
+                        btn.addEventListener('click', function(){
+                            const range = this.getAttribute('data-range');
+                            // swap active classes
+                            document.querySelectorAll('.range-btn').forEach(b=>{
+                                b.classList.remove('bg-gray-900','text-white','shadow-sm');
+                                b.classList.add('bg-gray-50','text-gray-700','border','border-gray-200');
+                            });
+                            this.classList.remove('bg-gray-50','text-gray-700','border','border-gray-200');
+                            this.classList.add('bg-gray-900','text-white','shadow-sm');
+
+                            currentRange = range;
+                            // show/hide week controls
+                            if(range === 'week'){
+                                weekControls.style.display = 'flex';
+                            } else {
+                                weekControls.style.display = 'none';
+                            }
+
+                            if(range === 'month'){
+                                // show rolling 12 months
+                                const labels = lastNMonths(12);
+                                const data = sample.month.slice();
+                                // If sample.month length differs, pad/trim to match labels
+                                if(data.length < labels.length){
+                                    while(data.length < labels.length) data.unshift(data[0] || 0);
+                                } else if(data.length > labels.length){
+                                    data.splice(0, data.length - labels.length);
+                                }
+                                updateChart({labels, data});
+                            } else if(range === 'week'){
+                                const data = weekDataFor(currentWeekStart);
+                                updateChart({labels: ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'], data});
+                            } else { // day
+                                updateChart({labels: ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'], data: sample.day});
+                            }
+                        });
+                    });
+                })();
+            </script>
+
+            <!-- Imbalances by GL Type -->
+            <div class="bg-white rounded-2xl shadow-sm p-6">
+                <h3 class="text-xl font-semibold text-gray-800 mb-6">Imbalances by GL Type</h3>
+                <div class="flex flex-col items-center">
+                    <div class="w-48 h-48">
+                        <canvas id="imbalancesDonut"></canvas>
+                    </div>
+                    <div class="mt-6 flex flex-col space-y-3">
+                        <div class="flex items-center space-x-2">
+                            <div class="w-3 h-3 rounded-full" style="background-color: #2b6ef6;"></div>
+                            <span class="text-sm font-medium text-gray-800">EAGLEPAY : 25</span>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <div class="w-3 h-3 rounded-full" style="background-color: #e53935;"></div>
+                            <span class="text-sm font-medium text-gray-800">TRANSFLOW : 25</span>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <div class="w-3 h-3 rounded-full" style="background-color: #f59e0b;"></div>
+                            <span class="text-sm font-medium text-gray-800">ETRANZACT : 25</span>
+                        </div>
+                    </div>
+                </div>
+                <script>
+                    (function(){
+                        const ctx = document.getElementById('imbalancesDonut').getContext('2d');
+                        const labels = ['EAGLEPAY','TRANSFLOW','ETRANZACT'];
+                        const values = [25,25,25];
+                        const colors = ['#2b6ef6', '#e53935', '#f59e0b'];
+
+                        new Chart(ctx, {
+                            type: 'doughnut',
+                            data: {
+                                labels: labels,
+                                datasets: [{
+                                    data: values,
+                                    backgroundColor: colors,
+                                    borderWidth: 0,
+                                    hoverOffset: 4
+                                }]
+                            },
+                            options: {
+                                responsive: true,
+                                maintainAspectRatio: true,
+                                cutout: '60%',
+                                plugins: {
+                                    legend: { display: false },
+                                    tooltip: { enabled: false }
+                                }
+                            }
+                        });
+                    })();
+                </script>
+            </div>
+        </div>
+
+        <!-- Imbalance Categories & Top 5 Branches -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+            <div class="bg-white rounded-2xl shadow-sm p-6">
+                <h3 class="text-lg font-bold text-gray-900 mb-4 uppercase">Imbalance Categories</h3>
+                
+                <div class="mb-6 flex justify-center">
+                    <div class="flex space-x-6">
+                        <div class="flex items-center space-x-2">
+                            <div class="w-2.5 h-2.5 rounded-full" style="background-color: #06D6D0;"></div>
+                            <span class="text-xs text-gray-700">Overstatement</span>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <div class="w-2.5 h-2.5 rounded-full" style="background-color: #36B9B5;"></div>
+                            <span class="text-xs text-gray-700">understatement</span>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <div class="w-2.5 h-2.5 rounded-full" style="background-color: #2E7D87;"></div>
+                            <span class="text-xs text-gray-700">Duplication</span>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <div class="w-2.5 h-2.5 rounded-full" style="background-color: #3B5C7E;"></div>
+                            <span class="text-xs text-gray-700">Failed</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="h-80">
+                    <canvas id="imbalanceCategoriesChart"></canvas>
+                </div>
+
+                <script>
+                    (function(){
+                        const ctx = document.getElementById('imbalanceCategoriesChart').getContext('2d');
+                        
+                        const categories = ['Overstatement', 'understatement', 'Duplication', 'Failed'];
+                        const values = [8, 12, 16, 20];
+                        const colors = ['#06D6D0', '#36B9B5', '#2E7D87', '#3B5C7E'];
+
+                        new Chart(ctx, {
+                            type: 'bar',
+                            data: {
+                                labels: categories,
+                                datasets: [{
+                                    label: 'Counts',
+                                    data: values,
+                                    backgroundColor: colors,
+                                    borderSkipped: false,
+                                    borderRadius: 6,
+                                    borderWidth: 0
+                                }]
+                            },
+                            options: {
+                                responsive: true,
+                                maintainAspectRatio: false,
+                                plugins: {
+                                    legend: { display: false },
+                                    tooltip: { enabled: false }
+                                },
+                                scales: {
+                                    y: {
+                                        beginAtZero: true,
+                                        max: 25,
+                                        grid: { color: '#e5e7eb', drawBorder: false },
+                                        ticks: { color: '#6b7280', font: { size: 12 } },
+                                        title: { display: true, text: 'Counts', color: '#6b7280', font: { size: 12 } }
+                                    },
+                                    x: {
+                                        grid: { display: false },
+                                        ticks: { color: '#6b7280', font: { size: 12 } },
+                                        title: { display: true, text: 'Cause', color: '#6b7280', font: { size: 12 } }
+                                    }
+                                }
+                            }
+                        });
+                    })();
+                </script>
+            </div>
+
+            <!-- Top 5 Branches with Imbalance -->
+            <div class="bg-white rounded-2xl shadow-sm p-6">
+                <h3 class="text-lg font-bold text-gray-900 mb-6 uppercase">Top 5 Branches with Imbalance</h3>
+                
+                <table class="w-full">
+                    <thead>
+                        <tr class="bg-blue-500">
+                            <th class="px-4 py-3 text-white text-center font-bold text-sm">BRANCH</th>
+                            <th class="px-4 py-3 text-white text-center font-bold text-sm">IMBALANCE COUNT</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="bg-gray-50 border-b border-gray-100">
+                            <td class="px-4 py-3 text-center text-sm text-gray-800">Circle</td>
+                            <td class="px-4 py-3 text-center text-sm text-gray-800">25</td>
+                        </tr>
+                        <tr class="bg-white border-b border-gray-100">
+                            <td class="px-4 py-3 text-center text-sm text-gray-800">Tema</td>
+                            <td class="px-4 py-3 text-center text-sm text-gray-800">21</td>
+                        </tr>
+                        <tr class="bg-blue-100 border-b border-gray-100">
+                            <td class="px-4 py-3 text-center text-sm text-gray-800">Nima</td>
+                            <td class="px-4 py-3 text-center text-sm text-gray-800">18</td>
+                        </tr>
+                        <tr class="bg-white border-b border-gray-100">
+                            <td class="px-4 py-3 text-center text-sm text-gray-800">Achimota</td>
+                            <td class="px-4 py-3 text-center text-sm text-gray-800">17</td>
+                        </tr>
+                        <tr class="bg-cyan-200">
+                            <td class="px-4 py-3 text-center text-sm text-gray-800">Lapaz</td>
+                            <td class="px-4 py-3 text-center text-sm text-gray-800">15</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="grid grid-cols-1 gap-6 mb-6">
+            <div class="bg-white rounded-2xl shadow-sm p-6">
+                <h3 class="text-base font-semibold text-gray-800 mb-6">Quick Actions</h3>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <!-- Upload Imbalance Excel -->
+                    <div class="border border-gray-200 rounded-xl p-5 bg-gray-50 hover:shadow-sm transition flex items-start space-x-4">
+                        <div class="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
+                            <i class="fas fa-cloud-upload-alt text-blue-600 text-lg"></i>
+                        </div>
+                        <div class="flex-1">
+                            <p class="font-semibold text-gray-900 text-sm">Upload Imbalance Excel</p>
+                            <p class="text-xs text-gray-600 mt-1">Import transaction data</p>
+                        </div>
+                    </div>
+
+                    <!-- Generate Reports -->
+                    <div class="border border-gray-200 rounded-xl p-5 bg-gray-50 hover:shadow-sm transition flex items-start space-x-4">
+                        <div class="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
+                            <i class="fas fa-chart-bar text-green-600 text-lg"></i>
+                        </div>
+                        <div class="flex-1">
+                            <p class="font-semibold text-gray-900 text-sm">Generate Reports</p>
+                            <p class="text-xs text-gray-600 mt-1">Daily & weekly summaries</p>
+                        </div>
+                    </div>
+
+                    <!-- View Audit Logs -->
+                    <div class="border border-gray-200 rounded-xl p-5 bg-gray-50 hover:shadow-sm transition flex items-start space-x-4">
+                        <div class="w-12 h-12 rounded-full bg-purple-100 flex items-center justify-center flex-shrink-0">
+                            <i class="fas fa-history text-purple-600 text-lg"></i>
+                        </div>
+                        <div class="flex-1">
+                            <p class="font-semibold text-gray-900 text-sm">View Audit Logs</p>
+                            <p class="text-xs text-gray-600 mt-1">Track all system activities</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Activity -->
+        <div class="grid grid-cols-1 gap-6 mb-6">
+            <div class="bg-white rounded-2xl shadow-sm p-6">
+                <div class="flex items-center justify-between mb-6 pb-4 border-b border-gray-200">
+                    <h3 class="text-base font-semibold text-gray-900">Recent Activity</h3>
+                    <a href="#" class="text-sm text-blue-600 hover:text-blue-700 font-medium">View All</a>
+                </div>
+
+                <div class="space-y-5">
+                    <!-- New imbalance detected -->
+                    <div class="flex items-start space-x-4">
+                        <div class="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                            <i class="fas fa-exclamation-circle text-red-600 text-sm"></i>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <p class="font-semibold text-gray-900 text-sm">New imbalance detected</p>
+                            <p class="text-xs text-gray-600 mt-1">TRN: TXN202401150847 - Amount: GHS 2,500.00</p>
+                        </div>
+                        <div class="text-xs text-gray-500 whitespace-nowrap ml-4">2 min ago</div>
+                    </div>
+
+                    <!-- Imbalance resolved -->
+                    <div class="flex items-start space-x-4">
+                        <div class="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                            <i class="fas fa-check-circle text-green-600 text-sm"></i>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <p class="font-semibold text-gray-900 text-sm">Imbalance resolved</p>
+                            <p class="text-xs text-gray-600 mt-1">TRN: TXN202401150832 - Matched by John Doe</p>
+                        </div>
+                        <div class="text-xs text-gray-500 whitespace-nowrap ml-4">5 min ago</div>
+                    </div>
+
+                    <!-- Excel file uploaded -->
+                    <div class="flex items-start space-x-4">
+                        <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                            <i class="fas fa-cloud-upload-alt text-blue-600 text-sm"></i>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <p class="font-semibold text-gray-900 text-sm">Excel file uploaded</p>
+                            <p class="text-xs text-gray-600 mt-1">Daily_Transactions_20240115.xlsx - 1,247 records</p>
+                        </div>
+                        <div class="text-xs text-gray-500 whitespace-nowrap ml-4">15 min ago</div>
+                    </div>
+
+                    <!-- Proxy credit flagged -->
+                    <div class="flex items-start space-x-4">
+                        <div class="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                            <i class="fas fa-flag text-amber-600 text-sm"></i>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <p class="font-semibold text-gray-900 text-sm">Proxy credit flagged</p>
+                            <p class="text-xs text-gray-600 mt-1">TRN: TXN202401150789 - Posted by USER123, Created for USER456</p>
+                        </div>
+                        <div class="text-xs text-gray-500 whitespace-nowrap ml-4">32 min ago</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
 
     <!-- Footer -->
     <footer class="bg-[#27343d] border-t mt-8">
@@ -93,10 +728,11 @@
     </footer>
 
     <script>
-        // System Status Indicator - Dynamic coloring
+        // Initialize Flatpickr date pickers and wire calendar icons
         document.addEventListener('DOMContentLoaded', function() {
+            // System Status Indicator - Dynamic coloring
             const statusIndicator = document.getElementById('systemStatusIndicator');
-            const currentStatus = statusIndicator.textContent.trim();
+            const currentStatus = statusIndicator.textContent.trim(); // Get current status text (ONLINE or OFFLINE)
             
             if (currentStatus === 'ONLINE') {
                 statusIndicator.className = 'font-bold text-green-400';
@@ -104,6 +740,7 @@
                 statusIndicator.className = 'font-bold text-red-500';
             }
 
+            // Function to update system status dynamically (can be called from elsewhere in app)
             window.updateSystemStatus = function(newStatus) {
                 const status = newStatus.toUpperCase();
                 statusIndicator.textContent = status;
@@ -113,7 +750,37 @@
                     statusIndicator.className = 'font-bold text-red-500';
                 }
             };
+
+            const instances = {};
+            document.querySelectorAll('.js-flatpickr').forEach(function(el){
+                const id = el.id;
+                // initialize flatpickr with mm/dd/yyyy and append to body to avoid clipping/z-index issues
+                instances[id] = flatpickr(el, {
+                    dateFormat: 'm/d/Y',
+                    allowInput: false,
+                    clickOpens: true,
+                    appendTo: document.body,
+                    onReady: function(selectedDates, dateStr, instance){
+                        if(!instance.input.value) instance.input.placeholder = 'mm/dd/yyyy';
+                    }
+                });
+            });
+
+            // Make calendar icon open corresponding picker
+            document.querySelectorAll('.js-date-icon').forEach(function(btn){
+                btn.addEventListener('click', function(e){
+                    const target = btn.getAttribute('data-target');
+                    if(!target) return;
+                    const inst = instances[target];
+                    if(inst) {
+                        inst.open();
+                    } else {
+                        const input = document.getElementById(target);
+                        if(input) input.focus();
+                    }
+                });
+            });
         });
     </script>
-  </body>
+</body>
 </html>

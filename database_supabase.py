@@ -52,7 +52,11 @@ class DatabaseConfig:
                 raise
         else:
             # MySQL
-            import pymysql
+            try:
+                import pymysql
+            except ImportError:
+                logger.error("pymysql is not installed. Please add it to requirements.txt or install via pip.")
+                raise
             try:
                 connection = pymysql.connect(
                     host=self.host,
@@ -150,12 +154,9 @@ db_manager = DatabaseManager()
 
 # Import the rest of the database managers (these remain unchanged)
 # They will use the new connection strings
-try:
-    from .legacy_managers import user_manager, file_manager, reconciliation_manager, audit_manager
-except ImportError:
-    # Create placeholder managers for initial setup
-    user_manager = db_manager
-    file_manager = db_manager
-    reconciliation_manager = db_manager
-    audit_manager = db_manager
-    logger.warning("Legacy managers not found - using DatabaseManager directly")
+# Remove unresolved .legacy_managers import; fallback to DatabaseManager directly
+user_manager = db_manager
+file_manager = db_manager
+reconciliation_manager = db_manager
+audit_manager = db_manager
+logger.warning("Legacy managers not found - using DatabaseManager directly")

@@ -241,7 +241,9 @@
   </div>
 
   <script>
-    const API_BASE_URL = 'https://api.reconx.com/v1';
+    const API_HOST = location.hostname || '127.0.0.1';
+    const API_PORT = window.RECONX_API_PORT || '5001';
+    const API_BASE_URL = window.API_BASE_URL || `${location.protocol}//${API_HOST}:${API_PORT}/api`;
     const API_ENDPOINTS = window.API_ENDPOINTS || {
       reports: '/reports',
       reportsFilters: '/reports/filters',

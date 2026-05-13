@@ -25,11 +25,11 @@ def create_user():
     username = data.get('username')
     email = data.get('email')
     password = data.get('password')
-    full_name = data.get('full_name')
+    full_name = data.get('full_name') or data.get('fullName') or username
     role_name = data.get('role', 'viewer')
 
-    if not username or not email or not password or not full_name:
-        return jsonify({'error': 'Username, email, password, and full name required'}), 400
+    if not username or not email or not password:
+        return jsonify({'error': 'Username, email, and password are required'}), 400
 
     try:
         roles = {

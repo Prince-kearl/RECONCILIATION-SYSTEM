@@ -2,38 +2,72 @@
 Database configuration and utilities for ReconX
 """
 
-import pymysql
 import os
 from datetime import datetime
 from typing import Dict, List, Optional, Any
 import logging
+from dotenv import load_dotenv
+
+try:
+    import pymysql
+except Exception:  # pragma: no cover - optional when running postgres-only
+    pymysql = None
+
+try:
+    import psycopg2
+    from psycopg2.extras import RealDictCursor
+except Exception:  # pragma: no cover - optional when running mysql-only
+    psycopg2 = None
+    RealDictCursor = None
 
 logger = logging.getLogger(__name__)
+
+# Support both conventional .env and this repo's config.env naming.
+load_dotenv('.env')
+load_dotenv('config.env')
+load_dotenv('.env.supabase')
 
 class DatabaseConfig:
     """Database configuration class"""
     
     def __init__(self):
+        self.db_type = os.getenv('DB_TYPE', 'mysql').lower()
         self.host = os.getenv('DB_HOST', 'localhost')
-        self.port = int(os.getenv('DB_PORT', 3306))
-        self.user = os.getenv('DB_USER', 'root')
+        self.port = int(os.getenv('DB_PORT', 3306 if self.db_type == 'mysql' else 5432))
+        self.user = os.getenv('DB_USER', 'root' if self.db_type == 'mysql' else 'postgres')
         self.password = os.getenv('DB_PASSWORD', '')
-        self.database = os.getenv('DB_NAME', 'reconx')
+        self.database = os.getenv('DB_NAME', 'reconx' if self.db_type == 'mysql' else 'postgres')
         self.charset = 'utf8mb4'
+        self.sslmode = os.getenv('DB_SSLMODE', 'require' if self.db_type == 'postgresql' else 'disable')
     
     def get_connection(self):
         """Get database connection"""
         try:
-            connection = pymysql.connect(
-                host=self.host,
-                port=self.port,
-                user=self.user,
-                password=self.password,
-                database=self.database,
-                charset=self.charset,
-                cursorclass=pymysql.cursors.DictCursor,
-                autocommit=True
-            )
+            if self.db_type == 'postgresql':
+                if psycopg2 is None:
+                    raise RuntimeError("psycopg2 is required for DB_TYPE=postgresql")
+                connection = psycopg2.connect(
+                    host=self.host,
+                    port=self.port,
+                    user=self.user,
+                    password=self.password,
+                    dbname=self.database,
+                    sslmode=self.sslmode,
+                    cursor_factory=RealDictCursor,
+                )
+            else:
+                if pymysql is None:
+                    raise RuntimeError("pymysql is required for DB_TYPE=mysql")
+                connection = pymysql.connect(
+                    host=self.host,
+                    port=self.port,
+                    user=self.user,
+                    password=self.password,
+                    database=self.database,
+                    charset=self.charset,
+                    cursorclass=pymysql.cursors.DictCursor,
+                    autocommit=True
+                )
             return connection
         except Exception as e:
             logger.error(f"Database connection failed: {e}")
@@ -85,7 +119,23 @@ class DatabaseManager:
             connection = self.config.get_connection()
             with connection.cursor() as cursor:
                 cursor.execute(query, params)
-                last_id = cursor.lastrowid
+                if self.config.db_type == 'postgresql':
+                    last_id = None
+                    try:
+                        returned = cursor.fetchone()
+                        if isinstance(returned, dict):
+                            first_value = next(iter(returned.values()), None)
+                            if first_value is not None:
+                                last_id = int(first_value)
+                    except Exception:
+                        last_id = None
+
+                    if last_id is None:
+                        cursor.execute("SELECT LASTVAL() AS id")
+                        row = cursor.fetchone() or {}
+                        last_id = int(row.get('id', 0) or 0)
+                else:
+                    last_id = cursor.lastrowid
                 connection.commit()
                 return last_id
         except Exception as e:

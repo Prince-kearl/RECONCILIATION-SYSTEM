@@ -1,402 +1,634 @@
+<!DOCTYPE html>
 <html lang="en">
- <head>
+<head>
   <meta charset="utf-8"/>
   <meta content="width=device-width, initial-scale=1" name="viewport"/>
-  <title>
-   Mail Notification Center
-  </title>
-  <script src="https://cdn.tailwindcss.com">
-  </script>
+  <title>ReconX | Mail</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet"/>
+
   <style>
-   /* Use monospace font for the email body text area */
+    body { background:#f8faff; }
+    .card {
+      background:#fff;
+      border:1px solid #e5e7eb;
+      border-radius:14px;
+      box-shadow:0 8px 22px rgba(17,24,39,.06);
+    }
+    .soft {
+      background:#f9fafb;
+      border:1px solid #e5e7eb;
+      border-radius:12px;
+    }
+    .btn-primary{
+      background:#fbbf24; color:#111827;
+      font-weight:800;
+    }
+    .btn-primary:hover{ background:#f59e0b; }
+    .btn-secondary{
+      background:#fff; border:1px solid #e5e7eb; color:#374151;
+      font-weight:700;
+    }
+    .btn-secondary:hover{ background:#f3f4f6; }
+    .btn-danger{
+      background:#fee2e2; border:1px solid #fecaca; color:#991b1b;
+      font-weight:800;
+    }
+    .btn-danger:hover{ background:#fecaca; }
+    .pill{
+      display:inline-flex; align-items:center;
+      padding:6px 12px;
+      border-radius:999px;
+      font-size:12px;
+      font-weight:800;
+      white-space:nowrap;
+    }
+    .pill-warn{ background:#fffbeb; color:#92400e; border:1px solid #fde68a; }
+    .pill-ok{ background:#ecfdf5; color:#065f46; border:1px solid #a7f3d0; }
+    .pill-bad{ background:#fef2f2; color:#991b1b; border:1px solid #fecaca; }
+
+    /* Monospace for email body */
     .font-mono {
       font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
         "Liberation Mono", "Courier New", monospace;
     }
   </style>
- </head>
- <body class="bg-gray-50 text-gray-900 font-sans min-h-screen">
+</head>
+
+<body class="text-gray-900 font-sans min-h-screen">
   <div id="notification-container" class="fixed top-3 right-3 z-50 space-y-2"></div>
+
   <!-- Header -->
   <header class="bg-[#27343d] flex items-center justify-between px-6 py-3">
-   <div class="flex items-center space-x-2">
-    <img alt="GCB logo in yellow with eagle icon" class="w-8 h-8" height="32" src="images/gcblogo.png" width="32"/>
-    <h1 class="text-yellow-400 font-extrabold text-lg leading-none">
-     RECON <span class="text-white">X</span>
-    </h1>
-   </div>
-   <div class="flex items-center space-x-6">
-    <button aria-label="Send" class="text-white text-xl hover:text-yellow-400 transition">
-     <i class="fas fa-paper-plane"></i>
-    </button>
-    <button aria-label="User profile" class="bg-gray-400 bg-opacity-30 rounded-full w-8 h-8 flex items-center justify-center text-white text-sm">
-     <i class="fas fa-user"></i>
-    </button>
-   </div>
+    <div class="flex items-center space-x-2">
+      <img alt="GCB logo" class="w-8 h-8" src="images/gcblogo.png"/>
+      <h1 class="text-yellow-400 font-extrabold text-lg leading-none">
+        RECON <span class="text-white">X</span>
+      </h1>
+    </div>
+    <div class="flex items-center space-x-6">
+      <button aria-label="Send" class="text-white text-xl hover:text-yellow-400 transition">
+        <i class="fas fa-paper-plane"></i>
+      </button>
+      <button aria-label="User profile"
+        class="bg-gray-400 bg-opacity-30 rounded-full w-8 h-8 flex items-center justify-center text-white text-sm">
+        <i class="fas fa-user"></i>
+      </button>
+    </div>
   </header>
+
   <!-- Navigation -->
   <nav class="bg-white border-b border-gray-200 px-6" aria-label="Primary">
-   <ul class="flex space-x-6 text-sm font-semibold text-gray-700 pt-3 pb-2">
-    <li>
-     <a href="dashboard.html" class="hover:text-gray-900 inline-block focus:outline-none focus:ring-2 focus:ring-yellow-400 rounded">Dashboard</a>
-    </li>
-    <li>
-     <a href="upload_enhanced.html" class="hover:text-gray-900 inline-block focus:outline-none focus:ring-2 focus:ring-yellow-400 rounded">Upload</a>
-    </li>
-    <li>
-     <a href="balancing.html" class="hover:text-gray-900 inline-block focus:outline-none focus:ring-2 focus:ring-yellow-400 rounded">Balancing</a>
-    </li>
-    <li>
-     <a href="Report.html" class="hover:text-gray-900 inline-block focus:outline-none focus:ring-2 focus:ring-yellow-400 rounded">Reports</a>
-    </li>
-    <li>
-     <a href="audit.html" class="hover:text-gray-900 inline-block focus:outline-none focus:ring-2 focus:ring-yellow-400 rounded">Audit</a>
-    </li>
-    <li>
-     <a href="users.html" class="hover:text-gray-900 inline-block focus:outline-none focus:ring-2 focus:ring-yellow-400 rounded">Users</a>
-    </li>
-    <li>
-     <a href="profile.html" class="hover:text-gray-900 inline-block focus:outline-none focus:ring-2 focus:ring-yellow-400 rounded">Profile</a>
-    </li>
-    <li>
-     <a href="mail.html" aria-current="page" class="text-yellow-500 border-b-2 border-yellow-400 pb-1 inline-block focus:outline-none focus:ring-2 focus:ring-yellow-400 rounded">Mail</a>
-    </li>
-   </ul>
+    <ul class="flex space-x-6 text-sm font-semibold text-gray-700 pt-3 pb-2">
+      <li><a href="dashboard.html" class="hover:text-gray-900 inline-block focus:outline-none focus:ring-2 focus:ring-yellow-400 rounded">Dashboard</a></li>
+      <li><a href="upload_enhanced.html" class="hover:text-gray-900 inline-block focus:outline-none focus:ring-2 focus:ring-yellow-400 rounded">Upload</a></li>
+      <li><a href="balancing.html" class="hover:text-gray-900 inline-block focus:outline-none focus:ring-2 focus:ring-yellow-400 rounded">Balancing</a></li>
+      <li><a href="Report.html" class="hover:text-gray-900 inline-block focus:outline-none focus:ring-2 focus:ring-yellow-400 rounded">Reports</a></li>
+      <li><a href="audit.html" class="hover:text-gray-900 inline-block focus:outline-none focus:ring-2 focus:ring-yellow-400 rounded">Audit</a></li>
+      <li><a href="users.html" class="hover:text-gray-900 inline-block focus:outline-none focus:ring-2 focus:ring-yellow-400 rounded">Users</a></li>
+      <li><a href="profile.html" class="hover:text-gray-900 inline-block focus:outline-none focus:ring-2 focus:ring-yellow-400 rounded">Profile</a></li>
+      <li>
+        <a href="mail.html" aria-current="page"
+          class="text-yellow-500 border-b-2 border-yellow-400 pb-1 inline-block focus:outline-none focus:ring-2 focus:ring-yellow-400 rounded">
+          Mail
+        </a>
+      </li>
+    </ul>
   </nav>
-  <main class="max-w-7xl mx-auto space-y-6 p-4 sm:p-6 md:p-10">
-   <!-- Page Header -->
-   <header>
-    <h1 class="font-semibold text-gray-800 text-lg sm:text-xl md:text-2xl">
-     Mail Notification Center
-    </h1>
-    <p class="text-gray-600 text-xs sm:text-sm md:text-base mt-1 max-w-2xl">
-     Review and send automated imbalance alerts to branches.
-    </p>
-   </header>
-   <!-- Info bar -->
-   <section aria-label="Branch, Date and Imbalance info" class="bg-yellow-50 border border-yellow-300 rounded-md px-4 py-2 flex flex-col sm:flex-row sm:items-center sm:space-x-6 text-xs sm:text-sm md:text-base text-gray-700 font-medium" role="region">
-    <div class="flex items-center space-x-1 mb-1 sm:mb-0">
-     <i class="fas fa-map-marker-alt text-yellow-600">
-     </i>
-     <span>
-      Branch:
-     </span>
-     <span id="branchName" class="font-semibold text-gray-900">—</span>
-    </div>
-    <div class="flex items-center space-x-1 mb-1 sm:mb-0">
-     <i class="fas fa-calendar-alt text-yellow-600">
-     </i>
-     <span>
-      Date:
-     </span>
-     <span id="imbalanceDate" class="font-semibold text-gray-900">—</span>
-    </div>
-    <div class="flex items-center space-x-1 mb-1 sm:mb-0">
-     <i class="fas fa-exclamation-triangle text-yellow-600">
-     </i>
-     <span>
-      Imbalance:
-     </span>
-     <span id="imbalanceAmount" class="font-semibold text-red-600">—</span>
-    </div>
-    <span id="imbalanceStatus" class="ml-auto bg-yellow-400 text-white text-xs sm:text-sm font-semibold rounded-full px-4 py-1 whitespace-nowrap">Loading…</span>
-   </section>
-   <!-- Main content area -->
-   <section aria-label="Main content and sidebar" class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-    <!-- Left main panel -->
-    <article aria-label="Email content and actions" class="lg:col-span-2 bg-white rounded-md shadow-sm border border-gray-200 p-4 flex flex-col">
-     <!-- Email header -->
-     <div class="mb-3 space-y-2 text-sm sm:text-base">
+
+  <main class="max-w-7xl mx-auto p-4 sm:p-6 md:p-10 space-y-6">
+
+    <!-- Page Header -->
+    <section class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
+      <div>
+        <h1 class="text-[18px] md:text-[22px] font-extrabold text-[#111827]">Mail Notification Center</h1>
+        <p class="text-[11px] md:text-[13px] text-[#6b7280] mt-1 max-w-2xl">
+          Review and send automated imbalance alerts to branches.
+        </p>
+      </div>
+
       <div class="flex items-center gap-2">
-        <label class="font-semibold" for="subjectInput">Subject:</label>
-        <input id="subjectInput" class="flex-1 border border-gray-300 rounded px-2 py-1 text-sm" placeholder="Email subject"/>
+        <button id="btnPreviewTop" class="btn-secondary rounded-lg px-4 py-2 text-[12px] flex items-center gap-2">
+          <i class="fas fa-eye"></i> Preview
+        </button>
+        <button id="btnSendTop" class="btn-primary rounded-lg px-4 py-2 text-[12px] flex items-center gap-2">
+          <i class="fas fa-paper-plane"></i> Send Mail
+        </button>
       </div>
-      <div class="flex items-center gap-2">
-        <label class="font-semibold">To/CC:</label>
-        <div id="recipientsTokens" class="flex flex-wrap gap-1"></div>
-      </div>
-     </div>
-     <!-- Email body -->
-     <textarea id="bodyInput" aria-label="Email body content" class="w-full h-56 resize-none border border-gray-300 rounded-md p-3 font-mono text-xs sm:text-sm md:text-base text-gray-800 bg-gray-50" placeholder="Email body..."></textarea>
-     <!-- Footer actions -->
-     <footer class="mt-4 flex flex-col sm:flex-row sm:items-center sm:justify-between text-xs text-gray-500">
-      <div class="flex items-center space-x-2 mb-2 sm:mb-0">
-       <i class="far fa-clock">
-       </i>
-       <span id="lastModified">Last modified: —</span>
-      </div>
-      <div class="flex items-center space-x-3">
-       <button id="btnDiscard" class="text-gray-600 hover:text-gray-900 text-xs sm:text-sm font-medium" type="button">
-        Discard
-       </button>
-       <button id="btnPreview" class="flex items-center space-x-1 border border-gray-400 rounded px-3 py-1 text-gray-700 hover:text-gray-900 hover:border-gray-700 text-xs sm:text-sm font-medium" type="button">
-        <i class="far fa-edit">
-        </i>
-        <span>
-         Preview
-        </span>
-       </button>
-       <button id="btnSend" class="flex items-center space-x-1 bg-yellow-400 hover:bg-yellow-500 text-white rounded px-3 py-1 text-xs sm:text-sm font-semibold" type="button">
-        <i class="fas fa-paper-plane">
-        </i>
-        <span>
-         Send Mail
-        </span>
-       </button>
-      </div>
-     </footer>
-    </article>
-    <!-- Right sidebar -->
-    <aside aria-label="Sidebar with recipients and quick actions" class="bg-white rounded-md shadow-sm border border-gray-200 p-4 flex flex-col space-y-6">
-     <!-- Recipients -->
-     <section aria-label="Recipients" class="space-y-4">
-      <h2 class="font-semibold text-gray-800 text-sm sm:text-base">
-       Recipients
-      </h2>
-      <div id="recipientsList" class="space-y-2"></div>
-      <div class="flex items-center gap-2">
-        <select id="recipientSelect" class="flex-1 border border-gray-300 rounded px-2 py-1 text-sm"></select>
-        <button id="btnAddRecipient" class="border border-gray-300 rounded-md px-2 py-1 text-gray-700 text-xs sm:text-sm font-semibold hover:bg-gray-100" type="button">+ Add</button>
-      </div>
-      <div id="recipientsLoading" class="text-xs text-gray-500">Loading recipients...</div>
-     </section>
-     <!-- Quick Actions -->
-     <section aria-label="Quick Actions" class="bg-gray-50 border border-gray-200 rounded-md p-3 space-y-2">
-      <h2 class="font-semibold text-gray-800 text-sm sm:text-base">
-       Quick Actions
-      </h2>
-      <button id="btnPreviewSide" class="w-full flex items-center space-x-2 bg-white border border-blue-300 text-blue-700 rounded-md px-3 py-2 text-xs sm:text-sm font-semibold hover:bg-blue-50" type="button">
-       <i class="fas fa-eye">
-       </i>
-       <span>
-        Preview Email
-       </span>
-      </button>
-      <button id="btnSaveTemplate" class="w-full flex items-center space-x-2 bg-green-100 border border-green-400 text-green-700 rounded-md px-3 py-2 text-xs sm:text-sm font-semibold hover:bg-green-200" type="button">
-       <i class="fas fa-save">
-       </i>
-       <span>
-        Save as Template
-       </span>
-      </button>
-      <button id="btnSchedule" class="w-full flex items-center space-x-2 bg-white border border-gray-400 text-gray-700 rounded-md px-3 py-2 text-xs sm:text-sm font-semibold hover:bg-gray-100" type="button">
-       <i class="fas fa-clock">
-       </i>
-       <span>
-        Schedule Send
-       </span>
-      </button>
-     </section>
-    </aside>
-   </section>
-   <!-- Recent Notifications -->
-   <section aria-label="Recent Notifications" class="bg-white rounded-md shadow-sm border border-gray-200 p-4 max-w-4xl mx-auto">
-     <h2 class="font-semibold text-gray-800 text-sm sm:text-base mb-2">
-      Recent Notifications
-     </h2>
-     <p class="text-gray-500 text-xs sm:text-sm mb-4">
-      Last 5 sent notifications
-     </p>
-     <div id="recentLoading" class="text-xs text-gray-500 mb-2">Loading…</div>
-     <ul id="recentList" class="space-y-3"></ul>
-   </section>
-  <!-- Preview Modal -->
-  <div id="previewModal" class="fixed inset-0 bg-black bg-opacity-40 hidden items-center justify-center z-40">
-    <div class="bg-white rounded-md shadow-lg max-w-xl w-full p-4">
-      <div class="flex items-center justify-between mb-2">
-        <h3 class="font-semibold text-gray-800 text-sm">Email Preview</h3>
-        <button id="btnClosePreview" class="text-gray-500 hover:text-gray-700"><i class="fas fa-times"></i></button>
-      </div>
-      <div class="mb-2 text-xs text-gray-700"><span class="font-semibold">Subject:</span> <span id="previewSubject"></span></div>
-      <pre id="previewBody" class="bg-gray-50 border border-gray-200 rounded p-3 text-xs text-gray-800 whitespace-pre-wrap"></pre>
-      <div class="mt-3 flex justify-end"><button id="btnClosePreview2" class="border border-gray-300 rounded px-3 py-1 text-xs">Close</button></div>
-    </div>
-  </div>
-  </main>
-<script>
-  const API_BASE_URL = 'https://api.reconx.com/v1';
-  const API_ENDPOINTS = window.API_ENDPOINTS || { mail: '/mail' };
-  function getAuthToken(){ return localStorage.getItem('authToken') || 'demo-token'; }
-  async function fetchData(pathOrUrl, { method='GET', headers={}, body, raw=false, retries=1 } = {}){
-    const url = pathOrUrl.startsWith('http') ? pathOrUrl : `${API_BASE_URL}${pathOrUrl}`;
-    const opts = { method, headers: { 'Authorization': `Bearer ${getAuthToken()}`, ...headers } };
-    if (body !== undefined) opts.body = body;
-    let lastErr; for (let i=0;i<=retries;i++) { try { const res = await fetch(url, opts); if (!res.ok) throw new Error(`HTTP ${res.status}`); return raw ? res : res.json(); } catch(e){ lastErr=e; if (i===retries) throw e; await new Promise(r=>setTimeout(r, 400*(i+1))); } }
-    throw lastErr;
-  }
-  function showToast(message,type='info'){
-    const host=document.getElementById('notification-container');
-    const div=document.createElement('div');
-    const color= type==='error'?'bg-red-600': type==='success'?'bg-green-600':'bg-gray-800';
-    div.className=`${color} text-white text-xs rounded px-3 py-2 shadow`;
-    div.textContent=message; host.appendChild(div); setTimeout(()=>div.remove(),3500);
-  }
+    </section>
 
-  // Elements
-  const branchNameEl = document.getElementById('branchName');
-  const imbalanceDateEl = document.getElementById('imbalanceDate');
-  const imbalanceAmountEl = document.getElementById('imbalanceAmount');
-  const imbalanceStatusEl = document.getElementById('imbalanceStatus');
-  const lastModifiedEl = document.getElementById('lastModified');
-  const subjectInput = document.getElementById('subjectInput');
-  const bodyInput = document.getElementById('bodyInput');
-  const recipientsList = document.getElementById('recipientsList');
-  const recipientsTokens = document.getElementById('recipientsTokens');
-  const recipientsSelect = document.getElementById('recipientSelect');
-  const recipientsLoading = document.getElementById('recipientsLoading');
-  const recentList = document.getElementById('recentList');
-  const recentLoading = document.getElementById('recentLoading');
-  const btnAddRecipient = document.getElementById('btnAddRecipient');
-  const btnSend = document.getElementById('btnSend');
-  const btnDiscard = document.getElementById('btnDiscard');
-  const btnPreview = document.getElementById('btnPreview');
-  const btnPreviewSide = document.getElementById('btnPreviewSide');
-  const btnSaveTemplate = document.getElementById('btnSaveTemplate');
-  const btnSchedule = document.getElementById('btnSchedule');
-  const previewModal = document.getElementById('previewModal');
-  const previewSubject = document.getElementById('previewSubject');
-  const previewBody = document.getElementById('previewBody');
-  const btnClosePreview = document.getElementById('btnClosePreview');
-  const btnClosePreview2 = document.getElementById('btnClosePreview2');
-
-  let state = { branchId: null, recipients: [], allRecipients: [], original: { subject:'', body:'', recipients: [] } };
-
-  function formatMoney(n){ const x = Number(n||0); return isFinite(x) ? x.toLocaleString(undefined,{ style:'currency', currency:'USD' }) : String(n); }
-
-  function renderRecipients(){
-    // Sidebar list
-    recipientsList.innerHTML='';
-    state.recipients.forEach((r, idx)=>{
-      const li = document.createElement('div');
-      li.className='flex items-center space-x-3 border border-gray-200 rounded-md p-2';
-      const initials = (r.name||r.email||'??').split(' ').map(s=>s[0]).join('').slice(0,3).toUpperCase();
-      li.innerHTML = `${r.avatar?`<img src="${r.avatar}" alt="" class="w-10 h-10 rounded-full object-cover"/>`:`<div class="flex items-center justify-center w-10 h-10 rounded-full bg-blue-600 text-white font-semibold text-xs">${initials}</div>`}
-        <div class="flex-1 min-w-0">
-          <p class="font-semibold text-gray-900 text-xs sm:text-sm truncate">${r.name||r.email}</p>
-          <p class="text-gray-500 text-xs sm:text-sm truncate">${r.role||''}</p>
-          <p class="text-gray-400 text-xs sm:text-sm truncate">${r.email}</p>
+    <!-- Info Bar -->
+    <section class="card p-4 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+      <div class="flex flex-wrap items-center gap-3">
+        <div class="soft px-3 py-2 flex items-center gap-2">
+          <span class="w-8 h-8 rounded-full bg-[#fffbeb] flex items-center justify-center border border-[#fde68a]">
+            <i class="fas fa-map-marker-alt text-[#f59e0b]"></i>
+          </span>
+          <div>
+            <p class="text-[11px] text-[#6b7280] font-semibold">Branch</p>
+            <p id="branchName" class="text-[13px] font-extrabold text-[#111827]">—</p>
+          </div>
         </div>
-        <button class="text-red-600 hover:text-red-800 text-xs sm:text-sm font-semibold" type="button" data-idx="${idx}"><i class="fas fa-times"></i></button>`;
-      recipientsList.appendChild(li);
-    });
-    // Tokens
-    recipientsTokens.innerHTML='';
-    state.recipients.forEach((r, idx)=>{
-      const t = document.createElement('span');
-      t.className='inline-flex items-center gap-1 bg-gray-100 border border-gray-300 rounded-full px-2 py-0.5 text-xs';
-      t.innerHTML = `${r.email}<button class="text-gray-500 hover:text-gray-700" data-idx="${idx}"><i class="fas fa-times"></i></button>`;
-      recipientsTokens.appendChild(t);
-    });
-    // remove handlers
-    recipientsList.querySelectorAll('button[data-idx]').forEach(btn=>btn.addEventListener('click',()=>removeRecipient(Number(btn.dataset.idx))));
-    recipientsTokens.querySelectorAll('button[data-idx]').forEach(btn=>btn.addEventListener('click',()=>removeRecipient(Number(btn.dataset.idx))));
-  }
 
-  function populateRecipientSelect(){
-    recipientsSelect.innerHTML='';
-    const opt0 = document.createElement('option'); opt0.value=''; opt0.textContent='Select recipient...'; recipientsSelect.appendChild(opt0);
-    state.allRecipients.forEach(r=>{ const o=document.createElement('option'); o.value=r.email; o.textContent=`${r.name||r.email} (${r.email})`; recipientsSelect.appendChild(o); });
-  }
+        <div class="soft px-3 py-2 flex items-center gap-2">
+          <span class="w-8 h-8 rounded-full bg-[#eef2ff] flex items-center justify-center border border-[#c7d2fe]">
+            <i class="fas fa-calendar-alt text-[#4f46e5]"></i>
+          </span>
+          <div>
+            <p class="text-[11px] text-[#6b7280] font-semibold">Date</p>
+            <p id="imbalanceDate" class="text-[13px] font-extrabold text-[#111827]">—</p>
+          </div>
+        </div>
 
-  function addRecipientByEmail(email){
-    const found = state.allRecipients.find(r=>r.email===email);
-    if (found && !state.recipients.some(x=>x.email===email)) { state.recipients.push(found); renderRecipients(); }
-  }
-  function removeRecipient(idx){ state.recipients.splice(idx,1); renderRecipients(); }
+        <div class="soft px-3 py-2 flex items-center gap-2">
+          <span class="w-8 h-8 rounded-full bg-[#fef2f2] flex items-center justify-center border border-[#fecaca]">
+            <i class="fas fa-exclamation-triangle text-[#ef4444]"></i>
+          </span>
+          <div>
+            <p class="text-[11px] text-[#6b7280] font-semibold">Imbalance</p>
+            <p id="imbalanceAmount" class="text-[13px] font-extrabold text-[#ef4444]">—</p>
+          </div>
+        </div>
+      </div>
 
-  async function loadImbalance(){
-    try{
-      imbalanceStatusEl.textContent='Loading…';
-      const data = await fetchData(`${API_ENDPOINTS.mail}/imbalance`).catch(()=>({}));
-      const branch = data.branch || {}; state.branchId = branch.id || data.branchId || null;
-      branchNameEl.textContent = branch.name || '—';
-      imbalanceDateEl.textContent = data.date ? new Date(data.date).toLocaleDateString() : '—';
-      imbalanceAmountEl.textContent = data.amount != null ? formatMoney(data.amount) : '—';
-      imbalanceStatusEl.textContent = data.status || 'Pending';
-      // default subject/body
-      state.original.subject = `Imbalance Notification – ${branch.name || 'Branch'} – ${imbalanceDateEl.textContent}`;
-      state.original.body = `Dear ${branch.managerName || 'Team'},\n\nAn imbalance has been identified on ${imbalanceDateEl.textContent}.\n\nDate of Imbalance: ${imbalanceDateEl.textContent}\nCause: ${data.cause || '—'}\nAmount: ${imbalanceAmountEl.textContent}\nCorrection Taken: ${data.correction || '—'}\n\nBest regards,\n\n[System Auto Notification]`;
-      subjectInput.value = state.original.subject; bodyInput.value = state.original.body; state.original.recipients = [];
-      lastModifiedEl.textContent = `Last modified: ${new Date().toLocaleTimeString()}`;
-    } catch(e){ showToast('Failed to load imbalance info','error'); }
-  }
+      <div class="flex items-center justify-end">
+        <span id="imbalanceStatus" class="pill pill-warn">Loading…</span>
+      </div>
+    </section>
 
-  async function loadRecipients(){
-    recipientsLoading.classList.remove('hidden');
-    try{
-      const qs = state.branchId ? `?branchId=${encodeURIComponent(state.branchId)}` : '';
-      const list = await fetchData(`${API_ENDPOINTS.mail}/recipients${qs}`).catch(()=>[]);
-      state.allRecipients = Array.isArray(list)?list:(list.items||[]);
-      populateRecipientSelect();
-      recipientsLoading.classList.add('hidden');
-      if (!state.recipients.length && state.allRecipients.length){ // preselect first primary
-        state.recipients = state.allRecipients.filter(r=>r.primary) || [state.allRecipients[0]];
+    <!-- Main content -->
+    <section class="grid grid-cols-1 lg:grid-cols-12 gap-4">
+
+      <!-- Left: Compose -->
+      <article class="card lg:col-span-8 p-4">
+        <div class="flex items-start justify-between gap-3 mb-3">
+          <div>
+            <p class="font-extrabold text-[#111827]">Compose Email</p>
+            <p class="text-[11px] text-[#6b7280]">Confirm recipients, adjust content, then send.</p>
+          </div>
+          <div class="text-[11px] text-[#6b7280] font-semibold flex items-center gap-2">
+            <i class="far fa-clock"></i>
+            <span id="lastModified">Last modified: —</span>
+          </div>
+        </div>
+
+        <!-- Subject -->
+        <div class="mb-3">
+          <label class="block text-[11px] font-semibold text-[#374151] mb-1" for="subjectInput">Subject</label>
+          <input id="subjectInput"
+            class="w-full border border-[#e5e7eb] rounded-lg px-3 py-2 text-[12px] bg-white focus:outline-none focus:ring-2 focus:ring-yellow-400"
+            placeholder="Email subject"/>
+        </div>
+
+        <!-- To / CC tokens -->
+        <div class="mb-3">
+          <label class="block text-[11px] font-semibold text-[#374151] mb-1">To / CC</label>
+          <div id="recipientsTokens" class="flex flex-wrap gap-2 p-2 border border-[#e5e7eb] rounded-lg bg-[#f9fafb] min-h-[42px]"></div>
+          <p class="text-[10px] text-[#9ca3af] font-semibold mt-1">Tip: remove recipients by clicking “×” on a token.</p>
+        </div>
+
+        <!-- Body -->
+        <div class="mb-4">
+          <label class="block text-[11px] font-semibold text-[#374151] mb-1" for="bodyInput">Body</label>
+          <textarea id="bodyInput"
+            class="w-full h-60 resize-none border border-[#e5e7eb] rounded-xl p-3 font-mono text-[12px] text-[#111827] bg-[#f9fafb] focus:outline-none focus:ring-2 focus:ring-yellow-400"
+            placeholder="Email body..."></textarea>
+        </div>
+
+        <!-- Actions -->
+        <div class="flex flex-col sm:flex-row gap-2 sm:items-center sm:justify-between">
+          <button id="btnDiscard" class="btn-secondary rounded-lg px-4 py-2 text-[12px] flex items-center gap-2 w-full sm:w-auto" type="button">
+            <i class="fas fa-undo"></i> Discard
+          </button>
+
+          <div class="flex gap-2 w-full sm:w-auto">
+            <button id="btnPreview" class="btn-secondary rounded-lg px-4 py-2 text-[12px] flex items-center gap-2 w-full sm:w-auto" type="button">
+              <i class="fas fa-eye"></i> Preview
+            </button>
+            <button id="btnSend" class="btn-primary rounded-lg px-4 py-2 text-[12px] flex items-center gap-2 w-full sm:w-auto" type="button">
+              <i class="fas fa-paper-plane"></i> Send Mail
+            </button>
+          </div>
+        </div>
+      </article>
+
+      <!-- Right sidebar -->
+      <aside class="lg:col-span-4 space-y-4">
+
+        <!-- Recipients -->
+        <section class="card p-4">
+          <div class="flex items-center justify-between mb-3">
+            <p class="font-extrabold text-[#111827]">Recipients</p>
+            <span class="text-[11px] text-[#6b7280] font-semibold">Branch contacts</span>
+          </div>
+
+          <div id="recipientsLoading" class="text-[11px] text-[#6b7280] mb-2">Loading recipients...</div>
+          <div id="recipientsList" class="space-y-2 mb-3"></div>
+
+          <div class="flex items-center gap-2">
+            <select id="recipientSelect"
+              class="flex-1 border border-[#e5e7eb] rounded-lg px-3 py-2 text-[12px] bg-white focus:outline-none focus:ring-2 focus:ring-yellow-400"></select>
+            <button id="btnAddRecipient" class="btn-secondary rounded-lg px-3 py-2 text-[12px]" type="button">
+              + Add
+            </button>
+          </div>
+        </section>
+
+        <!-- Quick Actions -->
+        <section class="card p-4">
+          <p class="font-extrabold text-[#111827] mb-3">Quick Actions</p>
+
+          <div class="space-y-2">
+            <button id="btnPreviewSide" class="w-full btn-secondary rounded-lg px-4 py-2 text-[12px] flex items-center gap-2" type="button">
+              <i class="fas fa-eye text-[#2563eb]"></i> Preview Email
+            </button>
+
+            <button id="btnSaveTemplate" class="w-full rounded-lg px-4 py-2 text-[12px] font-extrabold flex items-center gap-2 border border-[#bbf7d0] bg-[#ecfdf5] text-[#065f46]" type="button">
+              <i class="fas fa-save"></i> Save as Template
+            </button>
+
+            <button id="btnSchedule" class="w-full btn-secondary rounded-lg px-4 py-2 text-[12px] flex items-center gap-2" type="button">
+              <i class="fas fa-clock text-[#6b7280]"></i> Schedule Send
+            </button>
+          </div>
+        </section>
+
+        <!-- Recent Notifications -->
+        <section class="card p-4">
+          <div class="flex items-center justify-between mb-2">
+            <p class="font-extrabold text-[#111827]">Recent Notifications</p>
+            <span class="text-[11px] text-[#6b7280] font-semibold">Last 5</span>
+          </div>
+
+          <p class="text-[11px] text-[#6b7280] mb-3">Latest sent notifications for quick reference.</p>
+          <div id="recentLoading" class="text-[11px] text-[#6b7280] mb-2">Loading…</div>
+          <ul id="recentList" class="space-y-2"></ul>
+        </section>
+
+      </aside>
+    </section>
+
+    <!-- Preview Modal -->
+    <div id="previewModal" class="fixed inset-0 bg-black bg-opacity-40 hidden items-center justify-center z-40">
+      <div class="bg-white rounded-2xl shadow-lg max-w-2xl w-[92%] p-5 border border-[#e5e7eb]">
+        <div class="flex items-start justify-between mb-3">
+          <div>
+            <h3 class="font-extrabold text-[#111827]">Email Preview</h3>
+            <p class="text-[11px] text-[#6b7280]">Review the message before sending.</p>
+          </div>
+          <button id="btnClosePreview" class="text-[#9ca3af] hover:text-[#111827] text-xl leading-none">
+            &times;
+          </button>
+        </div>
+
+        <div class="soft p-3 mb-3">
+          <p class="text-[11px] text-[#6b7280] font-semibold">Subject</p>
+          <p id="previewSubject" class="text-[12px] font-extrabold text-[#111827]"></p>
+        </div>
+
+        <pre id="previewBody" class="bg-[#f9fafb] border border-[#e5e7eb] rounded-xl p-4 text-[12px] text-[#111827] whitespace-pre-wrap max-h-[340px] overflow-auto"></pre>
+
+        <div class="mt-4 flex justify-end gap-2">
+          <button id="btnClosePreview2" class="btn-secondary rounded-lg px-4 py-2 text-[12px]">Close</button>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <script>
+    const API_HOST = location.hostname || '127.0.0.1';
+    const API_PORT = window.RECONX_API_PORT || '5001';
+    const API_BASE_URL = window.API_BASE_URL || `${location.protocol}//${API_HOST}:${API_PORT}/api`;
+    const API_ENDPOINTS = window.API_ENDPOINTS || { mail: '/mail' };
+    function getAuthToken(){ return localStorage.getItem('authToken') || 'demo-token'; }
+    async function fetchData(pathOrUrl, { method='GET', headers={}, body, raw=false, retries=1 } = {}){
+      const url = pathOrUrl.startsWith('http') ? pathOrUrl : `${API_BASE_URL}${pathOrUrl}`;
+      const opts = { method, headers: { 'Authorization': `Bearer ${getAuthToken()}`, ...headers } };
+      if (body !== undefined) opts.body = body;
+      let lastErr;
+      for (let i=0;i<=retries;i++) {
+        try {
+          const res = await fetch(url, opts);
+          if (!res.ok) throw new Error(`HTTP ${res.status}`);
+          return raw ? res : res.json();
+        } catch(e){
+          lastErr=e;
+          if (i===retries) throw e;
+          await new Promise(r=>setTimeout(r, 400*(i+1)));
+        }
+      }
+      throw lastErr;
+    }
+    function showToast(message,type='info'){
+      const host=document.getElementById('notification-container');
+      const div=document.createElement('div');
+      const color= type==='error'?'bg-red-600': type==='success'?'bg-green-600':'bg-gray-800';
+      div.className=`${color} text-white text-xs rounded-lg px-3 py-2 shadow`;
+      div.textContent=message; host.appendChild(div); setTimeout(()=>div.remove(),3500);
+    }
+
+    // Elements
+    const branchNameEl = document.getElementById('branchName');
+    const imbalanceDateEl = document.getElementById('imbalanceDate');
+    const imbalanceAmountEl = document.getElementById('imbalanceAmount');
+    const imbalanceStatusEl = document.getElementById('imbalanceStatus');
+    const lastModifiedEl = document.getElementById('lastModified');
+    const subjectInput = document.getElementById('subjectInput');
+    const bodyInput = document.getElementById('bodyInput');
+    const recipientsList = document.getElementById('recipientsList');
+    const recipientsTokens = document.getElementById('recipientsTokens');
+    const recipientsSelect = document.getElementById('recipientSelect');
+    const recipientsLoading = document.getElementById('recipientsLoading');
+    const recentList = document.getElementById('recentList');
+    const recentLoading = document.getElementById('recentLoading');
+    const btnAddRecipient = document.getElementById('btnAddRecipient');
+    const btnSend = document.getElementById('btnSend');
+    const btnDiscard = document.getElementById('btnDiscard');
+    const btnPreview = document.getElementById('btnPreview');
+    const btnPreviewSide = document.getElementById('btnPreviewSide');
+    const btnSaveTemplate = document.getElementById('btnSaveTemplate');
+    const btnSchedule = document.getElementById('btnSchedule');
+    const previewModal = document.getElementById('previewModal');
+    const previewSubject = document.getElementById('previewSubject');
+    const previewBody = document.getElementById('previewBody');
+    const btnClosePreview = document.getElementById('btnClosePreview');
+    const btnClosePreview2 = document.getElementById('btnClosePreview2');
+
+    // Top buttons mapped to existing ones (no new logic)
+    const btnPreviewTop = document.getElementById('btnPreviewTop');
+    const btnSendTop = document.getElementById('btnSendTop');
+
+    let state = { branchId: null, recipients: [], allRecipients: [], original: { subject:'', body:'', recipients: [] } };
+
+    function formatMoney(n){
+      const x = Number(n||0);
+      return isFinite(x) ? x.toLocaleString(undefined,{ style:'currency', currency:'USD' }) : String(n);
+    }
+
+    function setStatusPill(text){
+      const t = String(text||'').toLowerCase();
+      imbalanceStatusEl.classList.remove('pill-warn','pill-ok','pill-bad');
+      if (t.includes('resolved') || t.includes('sent') || t.includes('ok')) imbalanceStatusEl.classList.add('pill-ok');
+      else if (t.includes('fail') || t.includes('critical')) imbalanceStatusEl.classList.add('pill-bad');
+      else imbalanceStatusEl.classList.add('pill-warn');
+      imbalanceStatusEl.textContent = text || 'Pending';
+    }
+
+    function renderRecipients(){
+      recipientsList.innerHTML='';
+      state.recipients.forEach((r, idx)=>{
+        const row = document.createElement('div');
+        row.className='flex items-center gap-3 border border-[#e5e7eb] rounded-xl p-3 bg-[#f9fafb]';
+        const initials = (r.name||r.email||'??').split(' ').map(s=>s[0]).join('').slice(0,2).toUpperCase();
+
+        row.innerHTML = `
+          <div class="w-10 h-10 rounded-full ${r.avatar ? '' : 'bg-[#2563eb]'} flex items-center justify-center overflow-hidden text-white font-extrabold text-[12px]">
+            ${r.avatar ? `<img src="${r.avatar}" alt="" class="w-full h-full object-cover"/>` : initials}
+          </div>
+          <div class="flex-1 min-w-0">
+            <p class="font-extrabold text-[#111827] text-[12px] truncate">${r.name||r.email}</p>
+            <p class="text-[11px] text-[#6b7280] font-semibold truncate">${r.role||'Recipient'}</p>
+            <p class="text-[11px] text-[#9ca3af] font-semibold truncate">${r.email}</p>
+          </div>
+          <button class="text-[#ef4444] hover:text-[#991b1b] text-[12px] font-extrabold" type="button" data-idx="${idx}">
+            <i class="fas fa-times"></i>
+          </button>
+        `;
+        recipientsList.appendChild(row);
+      });
+
+      // tokens
+      recipientsTokens.innerHTML='';
+      state.recipients.forEach((r, idx)=>{
+        const t = document.createElement('span');
+        t.className='inline-flex items-center gap-2 bg-white border border-[#e5e7eb] rounded-full px-3 py-1 text-[11px] font-semibold text-[#374151]';
+        t.innerHTML = `
+          <i class="fas fa-user text-[#9ca3af]"></i>
+          <span>${r.email}</span>
+          <button class="text-[#9ca3af] hover:text-[#111827]" data-idx="${idx}">
+            <i class="fas fa-times"></i>
+          </button>
+        `;
+        recipientsTokens.appendChild(t);
+      });
+
+      recipientsList.querySelectorAll('button[data-idx]').forEach(btn=>btn.addEventListener('click',()=>removeRecipient(Number(btn.dataset.idx))));
+      recipientsTokens.querySelectorAll('button[data-idx]').forEach(btn=>btn.addEventListener('click',()=>removeRecipient(Number(btn.dataset.idx))));
+    }
+
+    function populateRecipientSelect(){
+      recipientsSelect.innerHTML='';
+      const opt0 = document.createElement('option');
+      opt0.value=''; opt0.textContent='Select recipient...';
+      recipientsSelect.appendChild(opt0);
+
+      state.allRecipients.forEach(r=>{
+        const o=document.createElement('option');
+        o.value=r.email;
+        o.textContent=`${r.name||r.email} (${r.email})`;
+        recipientsSelect.appendChild(o);
+      });
+    }
+
+    function addRecipientByEmail(email){
+      const found = state.allRecipients.find(r=>r.email===email);
+      if (found && !state.recipients.some(x=>x.email===email)) {
+        state.recipients.push(found);
         renderRecipients();
       }
-    } catch(e){ recipientsLoading.textContent='Failed to load recipients'; }
-  }
+    }
+    function removeRecipient(idx){ state.recipients.splice(idx,1); renderRecipients(); }
 
-  function badge(status){
-    const s=String(status||'').toLowerCase();
-    if (s==='sent') return { cls:'bg-green-50 border-green-200 text-green-800', icon:'fa-check' };
-    if (s==='pending') return { cls:'bg-yellow-50 border-yellow-200 text-yellow-800', icon:'fa-hourglass-half' };
-    return { cls:'bg-red-50 border-red-200 text-red-800', icon:'fa-times' };
-  }
+    async function loadImbalance(){
+      try{
+        setStatusPill('Loading…');
+        const data = await fetchData(`${API_ENDPOINTS.mail}/imbalance`).catch(()=>({}));
+        const branch = data.branch || {};
+        state.branchId = branch.id || data.branchId || null;
 
-  async function loadRecent(){
-    recentLoading.classList.remove('hidden'); recentList.innerHTML='';
-    try{
-      const items = await fetchData(`${API_ENDPOINTS.mail}/recent?limit=5`).catch(()=>[]);
-      (items||[]).forEach(n=>{
-        const b=badge(n.status);
-        const li=document.createElement('li');
-        li.className=`flex items-center justify-between ${b.cls} border rounded-md px-4 py-2 text-sm`;
-        li.innerHTML=`<div class="flex items-center space-x-3">
-          <span class="flex items-center justify-center w-6 h-6 rounded-full text-white text-xs bg-current"><i class="fas ${b.icon}"></i></span>
-          <div><p class="font-semibold">${n.title||n.subject||'Notification'}</p>
-            <p class="text-xs">${n.date? new Date(n.date).toLocaleString():'—'}</p></div></div>
-          <span class="font-semibold text-xs capitalize">${n.status||''}</span>`;
-        recentList.appendChild(li);
-      });
-      if (!recentList.children.length){ recentList.innerHTML = '<li class="text-xs text-gray-500">No recent notifications</li>'; }
-    } catch(e){ recentList.innerHTML='<li class="text-xs text-red-600">Failed to load recent notifications</li>'; }
-    finally { recentLoading.classList.add('hidden'); }
-  }
+        branchNameEl.textContent = branch.name || '—';
+        imbalanceDateEl.textContent = data.date ? new Date(data.date).toLocaleDateString() : '—';
+        imbalanceAmountEl.textContent = data.amount != null ? formatMoney(data.amount) : '—';
 
-  function openPreview(){ previewSubject.textContent = subjectInput.value || '(No subject)'; previewBody.textContent = bodyInput.value || ''; previewModal.classList.remove('hidden'); previewModal.classList.add('flex'); }
-  function closePreview(){ previewModal.classList.add('hidden'); previewModal.classList.remove('flex'); }
+        setStatusPill(data.status || 'Pending');
 
-  function buildPayload(){
-    return { subject: subjectInput.value, body: bodyInput.value, recipients: state.recipients.map(r=>r.email), branchId: state.branchId };
-  }
+        state.original.subject = `Imbalance Notification – ${branch.name || 'Branch'} – ${imbalanceDateEl.textContent}`;
+        state.original.body =
+`Dear ${branch.managerName || 'Team'},
 
-  async function sendMail(){
-    try{ await fetchData(`${API_ENDPOINTS.mail}/send`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(buildPayload()) }); showToast('Mail sent','success'); await loadRecent(); }
-    catch(e){ showToast('Failed to send mail','error'); }
-  }
-  async function saveTemplate(){
-    try{ await fetchData(`${API_ENDPOINTS.mail}/template`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(buildPayload()) }); showToast('Template saved','success'); }
-    catch(e){ showToast('Failed to save template','error'); }
-  }
-  async function scheduleSend(){
-    try{ await fetchData(`${API_ENDPOINTS.mail}/schedule`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ ...buildPayload(), scheduleAt: new Date(Date.now()+5*60*1000).toISOString() }) }); showToast('Scheduled','success'); }
-    catch(e){ showToast('Failed to schedule','error'); }
-  }
-  function discard(){ subjectInput.value = state.original.subject; bodyInput.value = state.original.body; state.recipients = [...state.original.recipients]; renderRecipients(); showToast('Discarded changes'); }
+An imbalance has been identified on ${imbalanceDateEl.textContent}.
 
-  // Events
-  btnAddRecipient.addEventListener('click', ()=>{ if (recipientsSelect.value) addRecipientByEmail(recipientsSelect.value); });
-  btnSend.addEventListener('click', sendMail);
-  btnDiscard.addEventListener('click', discard);
-  btnPreview.addEventListener('click', openPreview);
-  btnPreviewSide.addEventListener('click', openPreview);
-  btnClosePreview.addEventListener('click', closePreview);
-  btnClosePreview2.addEventListener('click', closePreview);
-  btnSaveTemplate.addEventListener('click', saveTemplate);
-  btnSchedule.addEventListener('click', scheduleSend);
+Date of Imbalance: ${imbalanceDateEl.textContent}
+Cause: ${data.cause || '—'}
+Amount: ${imbalanceAmountEl.textContent}
+Correction Taken: ${data.correction || '—'}
 
-  (async function init(){ await loadImbalance(); await Promise.all([loadRecipients(), loadRecent()]); })();
-</script>
+Best regards,
+
+[System Auto Notification]`;
+
+        subjectInput.value = state.original.subject;
+        bodyInput.value = state.original.body;
+        state.original.recipients = [];
+
+        lastModifiedEl.textContent = `Last modified: ${new Date().toLocaleTimeString()}`;
+      } catch(e){
+        showToast('Failed to load imbalance info','error');
+        setStatusPill('Pending');
+      }
+    }
+
+    async function loadRecipients(){
+      recipientsLoading.classList.remove('hidden');
+      try{
+        const qs = state.branchId ? `?branchId=${encodeURIComponent(state.branchId)}` : '';
+        const list = await fetchData(`${API_ENDPOINTS.mail}/recipients${qs}`).catch(()=>[]);
+        state.allRecipients = Array.isArray(list)?list:(list.items||[]);
+        populateRecipientSelect();
+        recipientsLoading.classList.add('hidden');
+
+        if (!state.recipients.length && state.allRecipients.length){
+          const primaries = state.allRecipients.filter(r=>r.primary);
+          state.recipients = primaries.length ? primaries : [state.allRecipients[0]];
+          renderRecipients();
+        }
+      } catch(e){
+        recipientsLoading.textContent='Failed to load recipients';
+      }
+    }
+
+    function badge(status){
+      const s=String(status||'').toLowerCase();
+      if (s==='sent') return { cls:'bg-[#ecfdf5] border-[#a7f3d0] text-[#065f46]', icon:'fa-check' };
+      if (s==='pending') return { cls:'bg-[#fffbeb] border-[#fde68a] text-[#92400e]', icon:'fa-hourglass-half' };
+      return { cls:'bg-[#fef2f2] border-[#fecaca] text-[#991b1b]', icon:'fa-times' };
+    }
+
+    async function loadRecent(){
+      recentLoading.classList.remove('hidden'); recentList.innerHTML='';
+      try{
+        const items = await fetchData(`${API_ENDPOINTS.mail}/recent?limit=5`).catch(()=>[]);
+        (items||[]).forEach(n=>{
+          const b=badge(n.status);
+          const li=document.createElement('li');
+          li.className=`border rounded-xl px-4 py-3 text-[12px] flex items-start justify-between gap-3 ${b.cls}`;
+          li.innerHTML=`
+            <div class="flex items-start gap-3">
+              <span class="w-8 h-8 rounded-full bg-white/70 border border-white flex items-center justify-center">
+                <i class="fas ${b.icon}"></i>
+              </span>
+              <div>
+                <p class="font-extrabold">${n.title||n.subject||'Notification'}</p>
+                <p class="text-[11px] opacity-80">${n.date? new Date(n.date).toLocaleString():'—'}</p>
+              </div>
+            </div>
+            <span class="font-extrabold text-[11px] capitalize whitespace-nowrap">${n.status||''}</span>
+          `;
+          recentList.appendChild(li);
+        });
+        if (!recentList.children.length){
+          recentList.innerHTML = '<li class="text-[11px] text-[#6b7280]">No recent notifications</li>';
+        }
+      } catch(e){
+        recentList.innerHTML='<li class="text-[11px] text-[#ef4444] font-semibold">Failed to load recent notifications</li>';
+      } finally {
+        recentLoading.classList.add('hidden');
+      }
+    }
+
+    function openPreview(){
+      previewSubject.textContent = subjectInput.value || '(No subject)';
+      previewBody.textContent = bodyInput.value || '';
+      previewModal.classList.remove('hidden');
+      previewModal.classList.add('flex');
+    }
+    function closePreview(){
+      previewModal.classList.add('hidden');
+      previewModal.classList.remove('flex');
+    }
+
+    function buildPayload(){
+      return {
+        subject: subjectInput.value,
+        body: bodyInput.value,
+        recipients: state.recipients.map(r=>r.email),
+        branchId: state.branchId
+      };
+    }
+
+    async function sendMail(){
+      try{
+        await fetchData(`${API_ENDPOINTS.mail}/send`, {
+          method:'POST',
+          headers:{'Content-Type':'application/json'},
+          body: JSON.stringify(buildPayload())
+        });
+        showToast('Mail sent','success');
+        await loadRecent();
+        setStatusPill('Sent');
+      } catch(e){
+        showToast('Failed to send mail','error');
+      }
+    }
+    async function saveTemplate(){
+      try{
+        await fetchData(`${API_ENDPOINTS.mail}/template`, {
+          method:'POST',
+          headers:{'Content-Type':'application/json'},
+          body: JSON.stringify(buildPayload())
+        });
+        showToast('Template saved','success');
+      } catch(e){
+        showToast('Failed to save template','error');
+      }
+    }
+    async function scheduleSend(){
+      try{
+        await fetchData(`${API_ENDPOINTS.mail}/schedule`, {
+          method:'POST',
+          headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({ ...buildPayload(), scheduleAt: new Date(Date.now()+5*60*1000).toISOString() })
+        });
+        showToast('Scheduled','success');
+        setStatusPill('Scheduled');
+      } catch(e){
+        showToast('Failed to schedule','error');
+      }
+    }
+    function discard(){
+      subjectInput.value = state.original.subject;
+      bodyInput.value = state.original.body;
+      state.recipients = [...state.original.recipients];
+      renderRecipients();
+      showToast('Discarded changes');
+    }
+
+    // Events
+    btnAddRecipient.addEventListener('click', ()=>{ if (recipientsSelect.value) addRecipientByEmail(recipientsSelect.value); });
+    btnSend.addEventListener('click', sendMail);
+    btnDiscard.addEventListener('click', discard);
+    btnPreview.addEventListener('click', openPreview);
+    btnPreviewSide.addEventListener('click', openPreview);
+    btnClosePreview.addEventListener('click', closePreview);
+    btnClosePreview2.addEventListener('click', closePreview);
+    btnSaveTemplate.addEventListener('click', saveTemplate);
+    btnSchedule.addEventListener('click', scheduleSend);
+
+    // Top buttons map
+    btnPreviewTop.addEventListener('click', openPreview);
+    btnSendTop.addEventListener('click', sendMail);
+
+    // last modified update
+    function touch(){ lastModifiedEl.textContent = `Last modified: ${new Date().toLocaleTimeString()}`; }
+    subjectInput.addEventListener('input', touch);
+    bodyInput.addEventListener('input', touch);
+
+    (async function init(){
+      await loadImbalance();
+      await Promise.all([loadRecipients(), loadRecent()]);
+    })();
+  </script>
 </body>
 </html>

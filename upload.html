@@ -350,7 +350,9 @@
 
   <script>
     // API Configuration
-    const API_BASE_URL = 'http://localhost:5000/api';
+    const API_HOST = location.hostname || '127.0.0.1';
+    const API_PORT = window.RECONX_API_PORT || '5001';
+    const API_BASE_URL = window.API_BASE_URL || `${location.protocol}//${API_HOST}:${API_PORT}/api`;
     const API_ENDPOINTS = {
       uploadBank: '/upload/bank-statement',
       uploadCollection: '/upload/collection-report',
@@ -602,10 +604,10 @@
         
         if (result.success) {
           if (type === 'bank') {
-            state.bankFileId = result.file_id;
+            state.bankFileId = result.file_id || result.upload_id;
             state.bankFile = file;
           } else {
-            state.collectionFileId = result.file_id;
+            state.collectionFileId = result.file_id || result.upload_id;
             state.collectionFile = file;
           }
           
@@ -713,9 +715,8 @@
             'Authorization': `Bearer ${getAuthToken()}`
           },
           body: JSON.stringify({
-            bank_file_id: state.bankFileId,
-            collection_file_id: state.collectionFileId,
-            config: state.reconciliationConfig
+            tolerance: state.reconciliationConfig.tolerance,
+            enable_fuzzy: state.reconciliationConfig.enableFuzzy
           })
         });
         
@@ -726,11 +727,28 @@
         const result = await response.json();
         
         if (result.success) {
-          state.currentTask = result.task_id;
+          state.currentTask = result.task_id || result.run_id || null;
           showNotification('Reconciliation started successfully', 'success');
-          
-          // Start polling for status
-          pollReconciliationStatus(result.task_id);
+
+          // Controller-based reconciliation often completes synchronously.
+          if (result.download_url || result.summary) {
+            showReconciliationResults({
+              output_file: (result.download_url || '').split('/').pop() || '',
+              summary: {
+                bank_count: result.summary?.['Total Bank Records'] ?? result.summary?.bank_count ?? 0,
+                collection_count: result.summary?.['Total Internal Records'] ?? result.summary?.collection_count ?? 0,
+                matched_count: result.summary?.Matched ?? result.summary?.matched_count ?? 0,
+                unmatched_count: result.summary?.Unmatched ?? result.summary?.unmatched_count ?? 0,
+                matched_percentage: result.summary?.['Match Rate (%)'] ?? result.summary?.matched_percentage ?? 0
+              },
+              download_url: result.download_url || ''
+            });
+            const button = document.getElementById('startReconciliation');
+            button.disabled = false;
+            button.innerHTML = '<span>Start New Reconciliation</span><i class="fas fa-play text-[10px]"></i>';
+          } else if (result.task_id) {
+            pollReconciliationStatus(result.task_id);
+          }
         } else {
           throw new Error(result.error || 'Failed to start reconciliation');
         }
@@ -843,8 +861,8 @@
                 <span class="font-semibold">${summary.bank_count}</span>
               </div>
               <div class="flex justify-between">
-                <span class="text-sm text-gray-600">Total Collection Records:</span>
-                <span class="font-semibold">${summary.collection_count}</span>
+                <span class="text-sm text-gray-600">Total Internal Records:</span>
+                <span class="font-semibold">${summary.collection_count || summary.internal_count || 0}</span>
               </div>
               <div class="flex justify-between">
                 <span class="text-sm text-gray-600">Matched Records:</span>
@@ -861,7 +879,7 @@
             </div>
             
             <div class="flex space-x-3">
-              <button onclick="downloadReport('${result.output_file}')" class="flex-1 bg-yellow-400 text-white py-2 px-4 rounded font-semibold hover:bg-yellow-500">
+              <button onclick="downloadReport('${result.output_file}', '${result.download_url || ''}')" class="flex-1 bg-yellow-400 text-white py-2 px-4 rounded font-semibold hover:bg-yellow-500">
                 <i class="fas fa-download mr-2"></i>Download Report
               </button>
               <button onclick="window.location.href='balancing.html'" class="flex-1 bg-gray-600 text-white py-2 px-4 rounded font-semibold hover:bg-gray-700">
@@ -875,9 +893,10 @@
       document.body.insertAdjacentHTML('beforeend', resultsHtml);
     }
 
-    async function downloadReport(filename) {
+    async function downloadReport(filename, directUrl = '') {
       try {
-        const response = await fetch(`${API_BASE_URL}/reconciliation/download/${filename}`, {
+        const url = directUrl || `${API_BASE_URL}/reconciliation/download/${filename}`;
+        const response = await fetch(url, {
           headers: {
             'Authorization': `Bearer ${getAuthToken()}`
           }

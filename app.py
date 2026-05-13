@@ -20,6 +20,15 @@ import threading
 import queue
 from typing import Dict
 import time
+from dotenv import load_dotenv
+
+# Setup logging early so import-time fallbacks can log safely
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+# Load environment variables from either .env or config.env.
+load_dotenv('.env')
+load_dotenv('config.env')
 
 # Import the ReconciliationEngine
 import sys
@@ -40,7 +49,7 @@ except ImportError:
 try:
     from .controllers import auth_controller, files_controller, reconciliation_controller, users_controller
 except ImportError:
-    from controllers import auth_controller, files_controller, reconciliation_controller, users_controller
+    from api.controllers import auth_controller, files_controller, reconciliation_controller, users_controller
 
 app = Flask(__name__)
 # Legacy static redirect for old upload page
@@ -72,10 +81,6 @@ app.config.update(
 # Ensure directories exist
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 os.makedirs(app.config['OUTPUT_FOLDER'], exist_ok=True)
-
-# Setup logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
 
 # Background task queue for reconciliation processing
 task_queue = queue.Queue()
@@ -197,7 +202,7 @@ def log_audit(user_id, action, details=None):
 try:
     from .middleware.auth import require_auth
 except ImportError:
-    from middleware.auth import require_auth
+    from api.middleware.auth import require_auth
 
 def require_role(role):
     """Decorator to require specific role"""
@@ -220,7 +225,7 @@ try:
     try:
         from .controllers.auth_controller import auth_bp
     except ImportError:
-        from controllers.auth_controller import auth_bp
+        from api.controllers.auth_controller import auth_bp
     app.register_blueprint(auth_bp, url_prefix='/api/auth')
 except Exception as e:
     logger.warning(f'Auth controller not registered: {e}')
@@ -229,7 +234,7 @@ try:
     try:
         from .controllers.files_controller import files_bp
     except ImportError:
-        from controllers.files_controller import files_bp
+        from api.controllers.files_controller import files_bp
     app.register_blueprint(files_bp, url_prefix='/api/files')
 except Exception as e:
     logger.warning(f'Files controller not registered: {e}')
@@ -238,7 +243,7 @@ try:
     try:
         from .controllers.reconciliation_controller import recon_bp
     except ImportError:
-        from controllers.reconciliation_controller import recon_bp
+        from api.controllers.reconciliation_controller import recon_bp
     app.register_blueprint(recon_bp, url_prefix='/api/reconciliation')
 except Exception as e:
     logger.warning(f'Reconciliation controller not registered: {e}')
@@ -247,7 +252,7 @@ try:
     try:
         from .controllers.users_controller import users_bp
     except ImportError:
-        from controllers.users_controller import users_bp
+        from api.controllers.users_controller import users_bp
     app.register_blueprint(users_bp, url_prefix='/api/users')
 except Exception as e:
     logger.warning(f'Users controller not registered: {e}')
@@ -447,6 +452,547 @@ def get_reconciliation_summary():
     except Exception as e:
         logger.error(f"Reconciliation summary error: {str(e)}")
         return jsonify({'error': 'Failed to get reconciliation summary'}), 500
+
+# Frontend integration compatibility endpoints (database-backed)
+def _db_manager():
+    try:
+        from .database import DatabaseManager
+    except ImportError:
+        from database import DatabaseManager
+    return DatabaseManager()
+
+
+def _query_rows(query, params=None):
+    try:
+        db = _db_manager()
+        return db.execute_query(query, params or ())
+    except Exception as e:
+        logger.error(f"Query failed: {e}")
+        return []
+
+
+def _execute_update(query, params=None):
+    db = _db_manager()
+    return db.execute_update(query, params or ())
+
+
+def _execute_insert(query, params=None):
+    db = _db_manager()
+    return db.execute_insert(query, params or ())
+
+
+def _resolve_user_id():
+    auth = request.headers.get('Authorization', '')
+    if auth.startswith('Bearer '):
+        token = auth.split(' ', 1)[1].strip()
+        try:
+            payload = jwt.decode(token, app.config['JWT_SECRET_KEY'], algorithms=['HS256'])
+            user_id = payload.get('user_id') or payload.get('sub')
+            if user_id:
+                return int(user_id)
+        except Exception:
+            pass
+
+    user = _query_rows("SELECT user_id FROM users WHERE status='active' ORDER BY user_id ASC LIMIT 1")
+    return int(user[0]['user_id']) if user else None
+
+
+def _time_ago(dt_value):
+    try:
+        dt = pd.to_datetime(dt_value).to_pydatetime()
+        now = datetime.utcnow()
+        delta = max(0, int((now - dt).total_seconds()))
+        if delta < 60:
+            return f"{delta}s ago"
+        if delta < 3600:
+            return f"{delta // 60} min ago"
+        if delta < 86400:
+            return f"{delta // 3600}h ago"
+        return f"{delta // 86400}d ago"
+    except Exception:
+        return "-"
+
+
+@app.route('/api/reports/filters', methods=['GET'])
+def reports_filters():
+    types = [r['file_type'] for r in _query_rows("SELECT DISTINCT file_type FROM file_uploads WHERE file_type IS NOT NULL ORDER BY file_type")]
+    categories = [r['status'] for r in _query_rows("SELECT DISTINCT status FROM reconciliation_results WHERE status IS NOT NULL ORDER BY status")]
+    sources = [r['status'] for r in _query_rows("SELECT DISTINCT status FROM file_uploads WHERE status IS NOT NULL ORDER BY status")]
+    return jsonify({'types': types, 'categories': categories, 'sources': sources})
+
+
+@app.route('/api/reports', methods=['GET'])
+def reports_list():
+    page = max(1, int(request.args.get('page', 1)))
+    size = max(1, min(100, int(request.args.get('size', 10))))
+    from_date = request.args.get('from')
+    to_date = request.args.get('to')
+    prepared_by = request.args.get('preparedBy')
+
+    where = []
+    params = []
+    if from_date:
+        where.append("DATE(rr.started_at) >= %s")
+        params.append(from_date)
+    if to_date:
+        where.append("DATE(rr.started_at) <= %s")
+        params.append(to_date)
+    if prepared_by:
+        where.append("(u.email = %s OR u.username = %s)")
+        params.extend([prepared_by, prepared_by])
+
+    where_sql = f"WHERE {' AND '.join(where)}" if where else ""
+    total_row = _query_rows(
+        f"""
+        SELECT COUNT(*) AS total
+        FROM reconciliation_runs rr
+        LEFT JOIN users u ON rr.user_id = u.user_id
+        {where_sql}
+        """,
+        tuple(params),
+    )
+    total = int(total_row[0]['total']) if total_row else 0
+
+    offset = (page - 1) * size
+    rows = _query_rows(
+        f"""
+        SELECT rr.run_id, rr.started_at, rr.status, rr.output_file_path,
+               u.email, u.username
+        FROM reconciliation_runs rr
+        LEFT JOIN users u ON rr.user_id = u.user_id
+        {where_sql}
+        ORDER BY rr.started_at DESC
+        LIMIT %s OFFSET %s
+        """,
+        tuple(params + [size, offset]),
+    )
+
+    items = []
+    for r in rows:
+        file_name = os.path.basename(r.get('output_file_path') or '') or f"reconciliation_{r['run_id']}.xlsx"
+        items.append({
+            'id': r['run_id'],
+            'fileName': file_name,
+            'date': r['started_at'],
+            'status': str(r.get('status') or '').replace('_', ' ').title(),
+            'preparedBy': r.get('email') or r.get('username') or ''
+        })
+
+    return jsonify({'items': items, 'total': total})
+
+
+@app.route('/api/reports/<report_id>/export', methods=['POST'])
+def reports_export(report_id):
+    fmt = (request.args.get('format') or 'csv').lower()
+    run = _query_rows(
+        "SELECT run_id, output_file_path, started_at, status FROM reconciliation_runs WHERE run_id = %s LIMIT 1",
+        (report_id,),
+    )
+    if not run:
+        return jsonify({'error': 'Report not found'}), 404
+
+    run = run[0]
+    if fmt == 'xlsx' and run.get('output_file_path') and os.path.exists(run['output_file_path']):
+        return send_file(run['output_file_path'], as_attachment=True)
+
+    if fmt == 'pdf':
+        payload = {
+            'run_id': run['run_id'],
+            'status': run.get('status'),
+            'started_at': str(run.get('started_at')),
+        }
+        return app.response_class(
+            response=json.dumps(payload, indent=2),
+            status=200,
+            mimetype='application/json',
+            headers={'Content-Disposition': f"attachment; filename=report-{report_id}.json"},
+        )
+
+    lines = ["run_id,status,started_at", f"{run['run_id']},{run.get('status')},{run.get('started_at')}"]
+    return app.response_class(
+        response="\n".join(lines) + "\n",
+        status=200,
+        mimetype='text/csv',
+        headers={'Content-Disposition': f"attachment; filename=report-{report_id}.csv"},
+    )
+
+
+@app.route('/api/metrics/summary', methods=['GET'])
+def metrics_summary():
+    rows = _query_rows(
+        """
+        SELECT
+            SUM(CASE WHEN status='matched' THEN 1 ELSE 0 END) AS matched,
+            SUM(CASE WHEN status='unmatched' THEN 1 ELSE 0 END) AS unmatched,
+            SUM(CASE WHEN status IN ('difference','manual_review') THEN 1 ELSE 0 END) AS suspense
+        FROM reconciliation_results
+        """
+    )
+    matched = int(rows[0]['matched'] or 0) if rows else 0
+    unmatched = int(rows[0]['unmatched'] or 0) if rows else 0
+    suspense = int(rows[0]['suspense'] or 0) if rows else 0
+
+    value_rows = _query_rows(
+        """
+        SELECT COALESCE(SUM(bs.amount), 0) AS reconciled_value
+        FROM reconciliation_results rr
+        JOIN bank_statements bs ON rr.bank_statement_id = bs.statement_id
+        WHERE rr.status = 'matched'
+        """
+    )
+    reconciled_value = float(value_rows[0]['reconciled_value'] or 0) if value_rows else 0.0
+
+    return jsonify({
+        'matched': matched,
+        'unmatched': unmatched,
+        'suspense': suspense,
+        'reconciledValue': reconciled_value,
+    })
+
+
+@app.route('/api/activity/recent', methods=['GET'])
+def activity_recent():
+    rows = _query_rows(
+        "SELECT action, created_at FROM audit_logs ORDER BY created_at DESC LIMIT 10"
+    )
+    items = []
+    for r in rows:
+        items.append({
+            'status': 'success',
+            'message': str(r.get('action') or '').replace('_', ' ').title(),
+            'timeAgo': _time_ago(r.get('created_at')),
+        })
+    return jsonify(items)
+
+
+def _get_user_preferences(user_id):
+    pref = _query_rows(
+        "SELECT details FROM audit_logs WHERE user_id=%s AND action='user_preferences_updated' ORDER BY created_at DESC LIMIT 1",
+        (user_id,),
+    )
+    if not pref:
+        return {}
+    try:
+        details = pref[0].get('details')
+        if isinstance(details, str):
+            return json.loads(details)
+        return details or {}
+    except Exception:
+        return {}
+
+
+@app.route('/api/user/profile', methods=['GET', 'PUT'])
+def user_profile():
+    user_id = _resolve_user_id()
+    if not user_id:
+        return jsonify({'error': 'No user available'}), 404
+
+    if request.method == 'PUT':
+        data = request.get_json() or {}
+        updates = []
+        params = []
+        if data.get('fullName') is not None:
+            updates.append('full_name=%s')
+            params.append(data.get('fullName'))
+        if data.get('email') is not None:
+            updates.append('email=%s')
+            params.append(data.get('email'))
+
+        if updates:
+            _execute_update(
+                f"UPDATE users SET {', '.join(updates)} WHERE user_id=%s",
+                tuple(params + [user_id]),
+            )
+        return jsonify({'success': True})
+
+    rows = _query_rows(
+        """
+        SELECT u.user_id, u.username, u.full_name, u.email, u.status, u.mfa_enabled,
+               r.role_name
+        FROM users u
+        LEFT JOIN roles r ON u.role_id = r.role_id
+        WHERE u.user_id=%s
+        LIMIT 1
+        """,
+        (user_id,),
+    )
+    if not rows:
+        return jsonify({'error': 'User not found'}), 404
+
+    u = rows[0]
+    branch = _query_rows(
+        "SELECT branch FROM bank_statements WHERE uploaded_by=%s AND branch IS NOT NULL AND branch <> '' ORDER BY uploaded_at DESC LIMIT 1",
+        (user_id,),
+    )
+    branch_name = branch[0]['branch'] if branch else ''
+
+    return jsonify({
+        'fullName': u.get('full_name') or u.get('username') or '',
+        'name': u.get('full_name') or u.get('username') or '',
+        'email': u.get('email') or '',
+        'phone': '',
+        'role': str(u.get('role_name') or '').replace('_', ' ').title(),
+        'branchName': branch_name,
+        'branchCode': '',
+        'status': u.get('status') or 'inactive',
+        'twoFAEnabled': bool(u.get('mfa_enabled')),
+        'preferences': _get_user_preferences(user_id),
+    })
+
+
+@app.route('/api/user/change-password', methods=['POST'])
+def user_change_password():
+    user_id = _resolve_user_id()
+    if not user_id:
+        return jsonify({'error': 'No user available'}), 404
+
+    body = request.get_json() or {}
+    current_password = body.get('currentPassword') or ''
+    new_password = body.get('newPassword') or ''
+    if not current_password or not new_password:
+        return jsonify({'error': 'Current and new password are required'}), 400
+
+    row = _query_rows("SELECT password_hash FROM users WHERE user_id=%s LIMIT 1", (user_id,))
+    if not row:
+        return jsonify({'error': 'User not found'}), 404
+
+    stored_hash = row[0].get('password_hash') or ''
+    valid = False
+    try:
+        if stored_hash.startswith('$2b$'):
+            valid = bcrypt.checkpw(current_password.encode('utf-8'), stored_hash.encode('utf-8'))
+        else:
+            valid = check_password_hash(stored_hash, current_password)
+    except Exception:
+        valid = False
+
+    if not valid:
+        return jsonify({'error': 'Current password is incorrect'}), 400
+
+    _execute_update(
+        "UPDATE users SET password_hash=%s, password_changed_at=NOW() WHERE user_id=%s",
+        (generate_password_hash(new_password), user_id),
+    )
+    return jsonify({'success': True, 'message': 'Password updated'})
+
+
+@app.route('/api/user/twofa/enable', methods=['POST'])
+def user_enable_twofa():
+    user_id = _resolve_user_id()
+    if not user_id:
+        return jsonify({'error': 'No user available'}), 404
+    _execute_update("UPDATE users SET mfa_enabled=TRUE WHERE user_id=%s", (user_id,))
+    return jsonify({'success': True})
+
+
+@app.route('/api/user/twofa/disable', methods=['POST'])
+def user_disable_twofa():
+    user_id = _resolve_user_id()
+    if not user_id:
+        return jsonify({'error': 'No user available'}), 404
+    _execute_update("UPDATE users SET mfa_enabled=FALSE WHERE user_id=%s", (user_id,))
+    return jsonify({'success': True})
+
+
+@app.route('/api/user/preferences', methods=['PUT'])
+def user_preferences():
+    user_id = _resolve_user_id()
+    if not user_id:
+        return jsonify({'error': 'No user available'}), 404
+    data = request.get_json() or {}
+    _execute_insert(
+        "INSERT INTO audit_logs (user_id, action, details, ip_address) VALUES (%s, %s, %s, %s)",
+        (user_id, 'user_preferences_updated', json.dumps(data), request.remote_addr),
+    )
+    return jsonify({'success': True, 'preferences': data})
+
+
+@app.route('/api/user/activity', methods=['GET'])
+def user_activity():
+    user_id = _resolve_user_id()
+    if not user_id:
+        return jsonify({'items': []})
+    limit = max(1, min(50, int(request.args.get('limit', 5))))
+    rows = _query_rows(
+        "SELECT action, created_at FROM audit_logs WHERE user_id=%s ORDER BY created_at DESC LIMIT %s",
+        (user_id, limit),
+    )
+    return jsonify({'items': [
+        {
+            'action': str(r.get('action') or '').replace('_', ' ').title(),
+            'status': 'success',
+            'date': r.get('created_at'),
+        }
+        for r in rows
+    ]})
+
+
+@app.route('/api/user/devices', methods=['GET'])
+def user_devices():
+    user_id = _resolve_user_id()
+    if not user_id:
+        return jsonify({'items': []})
+    rows = _query_rows(
+        """
+        SELECT session_id, ip_address, user_agent, is_active, last_activity
+        FROM user_sessions
+        WHERE user_id=%s
+        ORDER BY last_activity DESC
+        LIMIT 10
+        """,
+        (user_id,),
+    )
+    return jsonify({'items': [
+        {
+            'name': (r.get('user_agent') or 'Unknown Device')[:64],
+            'type': 'mobile' if 'Mobile' in str(r.get('user_agent') or '') else 'desktop',
+            'ip': r.get('ip_address') or '',
+            'location': 'Unknown',
+            'current': bool(r.get('is_active')),
+            'lastSeen': r.get('last_activity'),
+        }
+        for r in rows
+    ]})
+
+
+@app.route('/api/user/export', methods=['GET'])
+def user_export():
+    user_id = _resolve_user_id()
+    if not user_id:
+        return jsonify({'error': 'No user available'}), 404
+    profile_rows = _query_rows(
+        "SELECT user_id, username, full_name, email, status, mfa_enabled FROM users WHERE user_id=%s",
+        (user_id,),
+    )
+    activity_rows = _query_rows(
+        "SELECT action, created_at FROM audit_logs WHERE user_id=%s ORDER BY created_at DESC LIMIT 100",
+        (user_id,),
+    )
+    payload = json.dumps({'profile': profile_rows[0] if profile_rows else {}, 'activity': activity_rows}, default=str, indent=2)
+    return app.response_class(
+        response=payload,
+        status=200,
+        mimetype='application/json',
+        headers={'Content-Disposition': 'attachment; filename=profile-export.json'}
+    )
+
+
+@app.route('/api/mail/imbalance', methods=['GET'])
+def mail_imbalance():
+    row = _query_rows(
+        """
+        SELECT rr.status, rr.difference, rr.matched_at,
+               bs.branch, bs.transaction_date AS bank_date, bs.amount AS bank_amount,
+               ir.amount AS internal_amount
+        FROM reconciliation_results rr
+        LEFT JOIN bank_statements bs ON rr.bank_statement_id = bs.statement_id
+        LEFT JOIN internal_records ir ON rr.internal_record_id = ir.record_id
+        WHERE rr.status IN ('unmatched', 'difference', 'manual_review')
+        ORDER BY rr.matched_at DESC
+        LIMIT 1
+        """
+    )
+    if not row:
+        return jsonify({'error': 'No imbalance record found'}), 404
+
+    r = row[0]
+    amount = r.get('difference')
+    if amount is None:
+        amount = r.get('bank_amount') if r.get('bank_amount') is not None else r.get('internal_amount')
+
+    return jsonify({
+        'branch': {'id': '', 'name': r.get('branch') or '', 'managerName': ''},
+        'date': r.get('bank_date') or r.get('matched_at'),
+        'amount': float(amount or 0),
+        'status': str(r.get('status') or '').title(),
+        'cause': '',
+        'correction': '',
+    })
+
+
+@app.route('/api/mail/recipients', methods=['GET'])
+def mail_recipients():
+    rows = _query_rows(
+        """
+        SELECT u.full_name, u.email, r.role_name
+        FROM users u
+        LEFT JOIN roles r ON u.role_id = r.role_id
+        WHERE u.status='active' AND u.email IS NOT NULL
+        ORDER BY u.created_at DESC
+        LIMIT 20
+        """
+    )
+    return jsonify([
+        {
+            'name': r.get('full_name') or '',
+            'email': r.get('email') or '',
+            'role': str(r.get('role_name') or '').replace('_', ' ').title(),
+            'primary': idx == 0,
+        }
+        for idx, r in enumerate(rows)
+    ])
+
+
+@app.route('/api/mail/recent', methods=['GET'])
+def mail_recent():
+    limit = max(1, min(50, int(request.args.get('limit', 5))))
+    rows = _query_rows(
+        """
+        SELECT action, details, created_at
+        FROM audit_logs
+        WHERE action IN ('mail_sent', 'mail_template_saved', 'mail_scheduled')
+        ORDER BY created_at DESC
+        LIMIT %s
+        """,
+        (limit,),
+    )
+    items = []
+    for r in rows:
+        details = r.get('details')
+        payload = {}
+        if isinstance(details, str):
+            try:
+                payload = json.loads(details)
+            except Exception:
+                payload = {}
+        items.append({
+            'status': 'sent' if r.get('action') == 'mail_sent' else 'pending',
+            'title': payload.get('subject') or str(r.get('action') or '').replace('_', ' ').title(),
+            'subject': payload.get('subject') or '',
+            'date': r.get('created_at'),
+        })
+    return jsonify(items)
+
+
+def _log_mail_action(action, data):
+    user_id = _resolve_user_id()
+    if not user_id:
+        return
+    _execute_insert(
+        "INSERT INTO audit_logs (user_id, action, details, ip_address) VALUES (%s, %s, %s, %s)",
+        (user_id, action, json.dumps(data), request.remote_addr),
+    )
+
+
+@app.route('/api/mail/send', methods=['POST'])
+def mail_send():
+    data = request.get_json() or {}
+    _log_mail_action('mail_sent', data)
+    return jsonify({'success': True, 'message': 'Mail sent'})
+
+
+@app.route('/api/mail/template', methods=['POST'])
+def mail_template():
+    data = request.get_json() or {}
+    _log_mail_action('mail_template_saved', data)
+    return jsonify({'success': True, 'message': 'Template saved'})
+
+
+@app.route('/api/mail/schedule', methods=['POST'])
+def mail_schedule():
+    data = request.get_json() or {}
+    _log_mail_action('mail_scheduled', data)
+    return jsonify({'success': True, 'message': 'Mail scheduled'})
 
 @app.route('/api/reconciliation/download/<filename>', methods=['GET'])
 @require_auth
